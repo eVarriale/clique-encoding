@@ -155,7 +155,7 @@ def other_next_step():
 
 
 n_clique = 4 # at larger than 3 (for s_c = 3)
-clique_size = 20 # larger than 2, otherwise cliques don't make sense
+clique_size = 10 # larger than 2, otherwise cliques don't make sense
 sparseness = True
 if sparseness:
     if n_clique <= (2 * clique_size + 3)/clique_size:
