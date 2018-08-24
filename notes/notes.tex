@@ -1,0 +1,51 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\author{Emanuele Varriale}
+\title{Notes on clique encoding networks}
+\usepackage[backend=bibtex]{biblatex}
+\bibliography{bibliography}
+\begin{document}
+	\maketitle
+	\section{Introduction}
+		The brain typically shows robust internal activity which is only modulated, but not driven, by sensory input, as the activity persists even in absence of such an input \cite{fiser_small_2004}. One could then wonder how does the internal dynamics relate to the sensory input and, in particular, how does meaning from the outside world get represented by network activity. 
+		
+		One possibility is to consider networks with transient state dynamics, i.e.\ networks whose activity consists of a series of attractor states, which are only transiently stable \cite{gros_semantic_2010}. Importantly, the attractor states themselves  are inherent to the network structure, and are not a product of external input. Such a network can be built as a collection of cliques, i.e.\ fully connected sub-networks. Connections  within cliques are only excitatory whereas among cliques they are mostly inhibitory, so that the network behaves in a multi-winner-take-all fashion. 
+		
+		The external input can then make use of pre-existing attractor states, acting as a bifurcation parameter, and confer semantic content to the network with a suitable learning rule that correlates input data to transient attractor dynamics. 
+		
+		We present a study on the internal transient state dynamics of networks with different architectures and, furthermore, we couple the network with an external input, from the bars problem, and analyse the resulting dynamics.
+		
+	\section{The network}
+	\subsection{Architecture}
+		Let's start by describing the possible network architectures for clique encoding. For simplicity we use undirected graph (i.e. symmetrical synapses) and neurons that have both excitatory and inhibitory synapses.
+			
+		One could build an Erd\"{o}s-Renyi kind of graph with excitatory connections and then complete the graph with inhibitory ones. This approach would lead to random cliques with an irregular autonomous dynamics, thus making even harder the search for a learning rule that couple cliques to sensory input.
+			
+		We have therefore worked with more regular networks which are described by the number of cliques $n_c$ and their size $s_c$. Each clique is a complete sub-graph with excitatory connections, and inhibitory connections exist only among different cliques. We worked with two kinds of networks which we named \emph{geometric} and \emph{rotating}, two examples are shown in Fig. \ref{fig:network}. 
+		
+		In the geometric arrangement each clique has two neurons that have an excitatory connection with another clique, while in the rotating arrangement every neuron of each clique has one such connection; but in both cases each clique can excite two other cliques. 
+		
+		The inhibitory connections either complete the graph, or are drawn with a probability P such that the average number of inhibitory synapses is equal to the number of excitatory ones.
+		
+		We will focus on the \emph{rotating} network.
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.45\linewidth]{../geometric/4x3net_r}
+			\includegraphics[width=0.45\linewidth]{../rotating/4x3_sFalse.png}
+			\caption{Left: a geometric network with $n_c = 3$ and $s_c = 3$. Right: a rotating network with $n_c = 3$ and $s_c = 4$.}
+			\label{fig:network}
+		\end{figure}
+		
+	\subsection{Weights}
+		We choose the weights so that the input approximately lies in the range $[-1, \, 1]$. The activation function of neurons is a sigmoidal whose output is restricted to $[0, \, 1]$. To have the transient state dynamics we need high input for neurons belonging to the winning clique and negative input for those outside.
+		We call the excitatory weights $w_{jk}$ and the inhibitory $z_{jk}$, $w_{jk}^{\text{inter}}$ are inter-clique connections.
+		
+		
+		
+		\newpage
+		\printbibliography
+\end{document}

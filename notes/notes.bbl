@@ -1,0 +1,86 @@
+% $ biblatex auxiliary file $
+% $ biblatex version 2.6 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\entry{fiser_small_2004}{article}{}
+  \name{author}{3}{}{%
+    {{}%
+     {Fiser}{F.}%
+     {Jozsef}{J.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Chiu}{C.}%
+     {Chiayu}{C.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Weliky}{W.}%
+     {Michael}{M.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{FJCCWM1}
+  \strng{fullhash}{FJCCWM1}
+  \field{sortinit}{F}
+  \field{pages}{573}
+  \field{title}{Small modulation of ongoing cortical dynamics by sensory input
+  during natural vision}
+  \verb{url}
+  \verb http://dx.doi.org/10.1038/nature02907
+  \endverb
+  \field{volume}{431}
+  \field{journaltitle}{Nature}
+  \field{month}{09}
+  \field{year}{2004}
+\endentry
+
+\entry{gros_semantic_2010}{article}{}
+  \name{author}{2}{}{%
+    {{}%
+     {Gros}{G.}%
+     {Claudius}{C.}%
+     {}{}%
+     {}{}}%
+    {{}%
+     {Kaczor}{K.}%
+     {Gregor}{G.}%
+     {}{}%
+     {}{}}%
+  }
+  \strng{namehash}{GCKG1}
+  \strng{fullhash}{GCKG1}
+  \field{sortinit}{G}
+  \verb{doi}
+  \verb 10.1093/jigpal/jzp045
+  \endverb
+  \field{number}{5}
+  \field{pages}{686\bibrangedash 704}
+  \field{title}{Semantic learning in autonomously active recurrent neural
+  networks}
+  \verb{url}
+  \verb http://dx.doi.org/10.1093/jigpal/jzp045
+  \endverb
+  \field{volume}{18}
+  \field{journaltitle}{Logic Journal of the IGPL}
+  \field{year}{2010}
+\endentry
+
+\lossort
+\endlossort
+
+\endinput

@@ -2,199 +2,186 @@
 
 import numpy as np                  # for math
 import matplotlib.pyplot as plt     # for plots
-from matplotlib.ticker import FormatStrFormatter
 plt.ion()
 import pdb                          # for debugging
 from tqdm import tqdm               # for progress bar
 #pdb.set_trace()
-from scipy.stats import norm        # for distributions
-import scipy.linalg as LA           # for linear algebra
-import networkx as nx               # for graphs
-from cycler import cycler           # for managing plot colors
-
+#from scipy.stats import norm        # for distributions
+#import scipy.linalg as LA           # for linear algebra
+#import networkx as nx               # for graphs
+#from cycler import cycler           # for managing plot colors
+import copy
 import time
 
 import networks as net
 import dynamics
 import plotting as myplot
+import semantic
+
+import importlib
+
+def reload_mod():
+    importlib.reload(net)
+    importlib.reload(dynamics)
+    importlib.reload(myplot)
+    importlib.reload(semantic)
 
 # Global variables
 
-SIM_STEPS       = 1*60*1000      # integration steps 
-DELTA_T         = 1             # integration time step in milliseconds
+SIM_STEPS = 1*60*1000 # integration steps
+DELTA_T = 1 # integration time step in milliseconds
 
-PROB_CONN   = 0.3
-EXC_FRAC    = 0.8
-np.random.seed(5)
+PROB_CONN = 0.3
+np.random.seed(6951)
 
-w_mean          = 1
+w_mean = 1
 
-
-n_clique = 3 # >=3 ! (for s_c = 3)
-clique_size = 5 # >2 !, otherwise cliques don't make sense
-NEURONS = n_clique * clique_size
-sparseness = True
+n_clique = 4 # >=3 ! (for s_c = 3)
+# must be even because of bars problem
+#if n_clique % 2:
+#    n_clique += 1
+clique_size = 4 # >2 !, otherwise cliques don't make sense
+neurons = n_clique * clique_size
+sparseness = False
 
 gain_rule = 2 # 1 : set target variance, 2 : self organized variance, 3 : gain is fixed
-if gain_rule == 3:
-    subtitle = 'Target variance = {:.2f}'.format(TARGET_VAR)
+
+if gain_rule == 1:
+    subtitle = 'Target variance' # = {:.2f}'.format(TARGET_VAR)
 elif gain_rule == 2:
     subtitle = 'Self-organized variance'
-else:
+elif gain_rule == 3:
     subtitle = 'Gain is fixed'
 print(subtitle)
 
 if sparseness:
     if n_clique <= (2 * clique_size + 3)/clique_size:
-        neurons = n_clique * clique_size
         exc_links = neurons * (clique_size +1) // 2
         tot_links = neurons*(neurons-1)//2
         p_inh = exc_links/(tot_links - exc_links)
         print('All-to-all even if sparse! P_inh = {}'.format(p_inh))
 
-
-
-#weights, G = geometric_network(n_clique, clique_size, sparse, w_mean)
 PROB_CONN = 0.3
 #weights, G, G_exc = ErdosRenyi_network()
 
-weights, G = net.rotating_clique(n_clique, clique_size, sparseness, w_mean)
-'''
-def plot_network(G):
-    exc_edge = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] > 0.]
-    inh_edge = [(u, v) for (u, v, d) in G.edges(data=True) if d['weight'] < 0.]
-    fig_net, ax_net = plt.subplots()
-    pos = nx.circular_layout(G)
-    #pos = nx.shell_layout(G)
-    #pos = nx.spring_layout(G)
-    nx.draw_networkx_nodes(G, pos = pos, ax = ax_net) # 
-    nx.draw_networkx_edges(G, pos, edgelist=exc_edge, ax = ax_net) #
-    nx.draw_networkx_edges(G, pos, edgelist=inh_edge, ax = ax_net, style = 'dashed', edge_color = 'b', alpha=0.5)
-    nx.draw_networkx_labels(G, pos)
-    ax_net.set_title('Network of {} cliques with {} nodes, sparse = {}'.format(n_clique, clique_size, sparseness))
-    ax_net.axis('off')
-'''
-if NEURONS < 20:
-    myplot.network(G)
+w_jk, z_jk, G = net.rotating_clique(n_clique, clique_size, sparseness, w_mean)
+#w_jk, z_jk, G = net.geometric(n_clique, clique_size)
+#w_jk, z_jk, G = net.ring(n_clique, w_exc = 0.4)
+weights = w_jk + z_jk
+
+plot_network = False
+if neurons < 20 and plot_network:
+    fig_net, ax_net = myplot.network(G)
+
+x = np.random.rand(neurons)
 
 #first_clique = np.ones(clique_size)
-#x = np.concatenate((first_clique, np.random.rand(NEURONS - clique_size)))
-x = np.random.rand(NEURONS)
-gain = np.random.normal(3, 0.5, NEURONS)
-threshold = np.random.normal(0.5, 0.1, NEURONS)
+#x[G.clique_list[0]] = 10.
 
-Y = np.zeros((NEURONS, SIM_STEPS))
-inputs = np.zeros((NEURONS, SIM_STEPS))
-B = np.zeros((NEURONS, SIM_STEPS))
-A = np.zeros((NEURONS, SIM_STEPS))
-X = np.zeros((NEURONS, SIM_STEPS))
+activity_record = np.zeros((neurons, SIM_STEPS))
+input_record = np.zeros((neurons, SIM_STEPS))
+sensory_inp_record = np.zeros((neurons, SIM_STEPS))
+membrane_pot_record = np.zeros((neurons, SIM_STEPS))
 
-for t in tqdm(range(SIM_STEPS)):
-    #x, threshold, gain, activity, x_inp = dynamics.target(x, gain, threshold, weights, gain_rule)
-    dx, db, da, activity, x_inp = dynamics.target(x, gain, threshold, weights, gain_rule)
+
+a = np.random.normal(9, 0.1, neurons)
+b = np.random.normal(0.5, 0.1, neurons)
+gain_record = np.zeros((neurons, SIM_STEPS))
+threshold_record = np.zeros((neurons, SIM_STEPS))
+
+φ = np.random.normal(1, 0.1, neurons)
+u = np.random.normal(1, 0.1, neurons)
+full_vesicles_record = np.zeros((neurons, SIM_STEPS))
+vesic_release_record = np.zeros((neurons, SIM_STEPS))
+
+input_on = 0
+bar_size = n_clique // 2
+if bar_size == 0:
+    bar_size = 1
+input_size = bar_size**2
+P_bars = np.minimum(2 / n_clique, 1) # average of 2 bars per input
+
+T_patt = 30 / DELTA_T #30  # bars lasting time
+T_inter = 100 / DELTA_T  # time beetween patterns
+
+v_jl = net.external_weights(input_size, neurons, P_bars)
+v_jl_0 = copy.copy(v_jl)
+v_jl_sampling = int(1000/DELTA_T)
+sensory_weight_record = np.zeros((neurons, input_size, SIM_STEPS//v_jl_sampling))
+ext_signal = np.zeros(input_size)
+
+for time in tqdm(range(SIM_STEPS)):
+
+    # the sensory signal is activated every T_inter ms, for T_patt ms
+    if time > 1000:
+        if time == input_on + T_patt:
+            ext_signal *= 0 
+            if neurons == 1 : ext_signal = np.array([-1])
+        if time%T_inter == 0: 
+            ext_signal = dynamics.bars_input(bar_size, P_bars)
+            if neurons == 1 : ext_signal = np.array([1])
+            input_on = time
+
+    '''     
+    # dynamics for sliding threshold model
+    # x : membrane potential, b : threshold, a : gain
+    # y : activity, T : total input, S : sensory input
+    dx, db, da, y, T, S, dV = dynamics.target(x, a, b, weights, gain_rule, ext_signal, v_jl)
+    b = np.maximum( b + db * DELTA_T, 0.)
+    a += da * DELTA_T
+    threshold_record[:, time] = b
+    gain_record[:, time] = a
+    '''
+    # dynamics for Tsodyks-Markram model
+    # x : membrane potential, u : vesicle release factor, φ : number of full vesicles
+    # y : activity, T : total input, S : sensory input
+    # w_jk : excitatory recurrent, z_jk : inhibitory rec, v_jl : exc sensory
+    dx, du, dφ, y, T, S, dV = dynamics.full_depletion(x, φ, u, w_jk, z_jk, ext_signal, v_jl)
+    φ += dφ
+    u += du
+    full_vesicles_record[:, time] = φ
+    vesic_release_record[:, time] = u
+  
+
     x += dx * DELTA_T
-    threshold += db * DELTA_T
-    gain += da * DELTA_T
-    Y[:, t] = activity
-    B[:, t] = threshold
-    A[:, t] = gain
-    inputs[:, t] = x_inp
-    X[:, t] = x
+    v_jl += dV * DELTA_T
+    
+    activity_record[:, time] = y * (dV[:, 3] < 0).any()
+    membrane_pot_record[:, time] = x
+    input_record[:, time] = T
+    sensory_inp_record[:, time] = S
+    if time%v_jl_sampling == 0:
+        sensory_weight_record[:, :, time//v_jl_sampling] = v_jl
+
 
 #final_times = 10000
 #final_times = int(SIM_STEPS/3)
-final_times = SIM_STEPS
+final_times = np.minimum(SIM_STEPS, 10000)
 time_plot = np.arange(final_times)/int(1000/DELTA_T) # time in seconds
-neurons_plot = NEURONS
-Y_plot = Y[:, -final_times:]
-mean = Y_plot.mean()
-std = Y_plot.std()
-if NEURONS < 20 and False:
-    fig, axs = plt.subplots(NEURONS, 1, sharex=True)
-    plt.suptitle(fig_title)
-    plt.title(subtitle)
-    fig.subplots_adjust(hspace=0)
-    color = { 0 : 'xkcd:pale blue', 1 : 'xkcd:white'}
-    color_switch = True
-    for i in range(NEURONS):
-        if(i % clique_size==0):
-            color_switch = not color_switch
-        axs[i].set_ylim(-1.1, 2.1)
-        axs[i].plot(time_plot, Y_plot[i], 'k', linewidth=1, label = i%n_clique)
-        axs[i].fill_between(time_plot, 0, Y_plot[i])
-        axs[i].plot(time_plot, B[i, -final_times:], 'r--', linewidth=1)
-        axs[i].set_facecolor(color[color_switch])
-        #axs[i].get_xaxis().set_visible(False)
-        #axs[i].axis('off')
-    axs[NEURONS-1].set_xlabel('time (s)'.format((SIM_STEPS-final_times)/int(1000/DELTA_T)))
+neurons_plot = neurons
+Y_plot = activity_record[:, -final_times:]
 
+if not (vesic_release_record==0).all() and False:
+    fig, ax = plt.subplots()
+    #plt.plot(time_plot, full_vesicles_record.T, label = 'φ')
+    #plt.plot(time_plot, vesic_release_record.T, label = 'u')
+    plt.plot(time_plot, vesic_release_record.T * full_vesicles_record.T, label = 'φu')
+    plt.legend()
 
-input_pl = inputs[:, -final_times:]
-X_plot = X[:, -final_times:]
+input_pl        =        input_record[:, -final_times:]
+X_plot          = membrane_pot_record[:, -final_times:]
+gain_plot       =         gain_record[:, -final_times:]
+threshold_plot  =    threshold_record[:, -final_times:]
 
-'''
-fig_inp, axs_inp = plt.subplots(NEURONS, 1, sharex=True)
-plt.suptitle('Input of {} cliques with {} nodes'.format(n_clique, clique_size))
-plt.title(subtitle)
-fig_inp.subplots_adjust(hspace=0)
-color_switch = True
-for i in range(NEURONS):
-    if(i % clique_size==0):
-        color_switch = not color_switch
-    #axs_inp[i].set_ylim(-1, 2)
-    axs_inp[i].plot(time_plot, input_pl[i]-X_plot[i], 'k', linewidth=1)
-    #axs_inp[i].fill_between(time_plot, 0, input_pl[i])
-    #plt.yticks([0.5], ('{}'.format(i)))
-    axs_inp[i].set_facecolor(color[color_switch])
-    #axs_inp[i].get_xaxis().set_visible(False)
-    #axs_inp[i].axis('off')
-axs_inp[NEURONS-1].set_xlabel('time (s)')
-'''
-
-save_figures = True
+save_figures = False
 fig_title = 'Activity of {} cliques with {} nodes, sparse = {}'.format(G.n_c, G.s_c, G.sparse)
+#Y_plot *= vesic_release_record * full_vesicles_record
+myplot.activity(G, time_plot, neurons_plot, Y_plot, gain_plot, threshold_plot, gain_rule, save_figures)
 
-myplot.activity(G, time_plot, neurons_plot, Y_plot, A, B, gain_rule, save_figures)
+if (v_jl != v_jl_0).any(): myplot.complete_figure(G, v_jl)
+#derivative = ( (Y_plot[:, 1:]-Y_plot[:, :-1])/(time_plot[1] - time_plot[0]) )
+#myplot.activity(G, time_plot[:-1], neurons_plot, derivative, gain_record[:-1], threshold_record[:-1], gain_rule, save_figures)
+
 myplot.input(G, time_plot, neurons_plot, input_pl, save_figures)
 
-'''
-fig2, ax2 = plt.subplots()
-ax2.hist(Y_plot.flatten(), density=True, bins = 50)
-hist_x = np.linspace(0, 1, 1000)
-ax2.plot(hist_x, norm.pdf(hist_x, loc = TARGET_MEAN, scale = TARGET_VAR**0.5), label = 'Target: $\mathcal{N}$'+'({}, {:.1})'.format(TARGET_MEAN, np.sqrt(TARGET_VAR)))
-ax2.plot(hist_x, norm.pdf(hist_x, loc = mean, scale = std), label = '$\mathcal{N}'+'(\mu_\mathrm{y}, \, \sigma_\mathrm{y})$')
-#ax2.hist(Y[:N_EXC, :].flatten(), density=True, bins = 100, histtype = 'step', label = 'excitatory')
-#ax2.hist(Y[N_EXC:,:].flatten(), density=True, bins = 100, histtype = 'step', label = 'excitatory')
-ax2.set(title = 'Activity distribution, exc: {}, w_mean: {}'.format(EXC_FRAC, w_mean), xlabel = 'Activity y', ylabel = 'Density')
-ax2.legend()
-if save_figures:
-    fig2.savefig('exc{}_w_mean{}_distr'.format(int(EXC_FRAC*10), int(w_mean*100)), **savefig_options)
-    plt.close(fig2)
-    #Y_plot = 0    
-
-fig3, ax3 = plt.subplots()
-ax3.plot(time_plot, B[:neurons_plot, -final_times:].T)
-ax3.set(ylabel = 'Threshold', xlabel = 'time (s)', title = 'excitatory fraction: {}, w_mean: {}'.format(EXC_FRAC, w_mean))
-if save_figures:
-    fig3.savefig('exc{}_w_mean{}_thresh'.format(int(EXC_FRAC*10), int(w_mean*100)), **savefig_options)
-    plt.close(fig3)
-    #B = 0
-
-fig4, ax4 = plt.subplots()
-ax4.plot(time_plot, A[:neurons_plot, -final_times:].T)
-ax4.set(ylabel = 'Gain', xlabel = 'time (s)', title = 'excitatory fraction: {}, w_mean: {}'.format(EXC_FRAC, w_mean)) 
-if save_figures:
-    fig4.savefig('exc{}_w_mean{}_gain'.format(int(EXC_FRAC*10), int(w_mean*100)), **savefig_options)
-    plt.close(fig4)
-    #A = 0
-'''
-'''
-fig5, ax5 = plt.subplots()
-ax5.hist(inputs[:, -final_times:].flatten(), density=True, bins = 50)
-ax5.set(title = 'Input distribution, exc: {}, w_mean: {}'.format(EXC_FRAC, w_mean), xlabel = 'Input', ylabel = 'Density') 
-if save_figures:
-    fig5.savefig('exc{}_w_mean{}_inpdistr'.format(int(EXC_FRAC*10), int(w_mean*100)), **savefig_options)
-    plt.close(fig5)
-    #inputs = 0
-'''
 plt.show()
