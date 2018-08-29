@@ -1,69 +1,73 @@
 #!/usr/bin/env python3
 
+''' This module encloses functions that deal with the semantic representation
+of the bars problem in the network'''
+
 import numpy as np                  # for math
 
-def a_bar(n, bar, ravel = True):
-    ''' Input from bar-th bar in n x n
-    first n bars are vertical, then horizontal'''
+def a_bar(bar_size, bar_number, ravel=True):
+    ''' Input from bar_number-th bar in with size bar_size
+    first bar_size bars are vertical, then horizontal'''
 
-    y = np.zeros((n, n))
-    if 0<=bar<n:
-        y[:, bar] = 1
+    sensory_matrix = np.zeros((bar_size, bar_size))
+    if 0 <= bar_number < bar_size:
+        sensory_matrix[:, bar_number] = 1
     else:
-        y[bar % n, :] = 1
+        sensory_matrix[bar_number % bar_size, :] = 1
 
     if ravel:
-        inputs = y.ravel()
-        return inputs
-    else:
-        return y
+        sensory_matrix = sensory_matrix.ravel()
 
-def a_clique_response(clique, G, external_weights):
+    return sensory_matrix
+
+def a_clique_response(clique, graph, external_weights):
     '''compute clique averaged afferent signals for every pattern
     clique: a list of neurons belonging to the same clique
-    G: Graph instance, with info about the network
+    graph: Graph instance, with info about the network
     external_weights: sensory weights'''
-
+    n_pattern = graph.n_c
+    bar_size = graph.n_c//2
     response = []
-    for pattern in range(G.n_c):
-        R = 0
-        for i in range(len(clique)):
-            R += np.dot(external_weights[clique[i], :], a_bar(G.n_c//2, pattern))
-        response.append(R)
+    for pattern in range(n_pattern):
+        sum_response = 0
+        for neuron in clique:
+            sum_response += np.dot(external_weights[neuron, :], a_bar(bar_size, pattern))
+        response.append(sum_response)
     response = np.array(response)
-    return response / G.s_c
+    response /= graph.s_c
+    return response
 
-def clique_responses(G, external_weights):
-    bar_size = G.n_c//2
-    n_bars = G.n_c
-    resp = []
-    for clique in G.clique_list:
-        resp.append(a_clique_response(clique, G, external_weights))
-    resp = np.array(resp)
-    most_responding = np.argmax(resp, axis=0)
-    return resp, most_responding
+def clique_responses(graph, external_weights):
+    ''' compute every clique response to every pattern, and the most responsive
+    cliques '''
+    response_list = []
+    for clique in graph.clique_list:
+        response_list.append(a_clique_response(clique, graph, external_weights))
+    response_array = np.array(response_list)
+    most_responding = np.argmax(response_array, axis=0)
+    return response_array, most_responding
 
-def a_receptive_field(clique, G, external_weights):
-    bar_size = G.n_c//2
-    #F = np.zeros((bar_size, bar_size))
-    s = 0
-    clique_neur = clique + np.arange(0, G.number_of_nodes(), G.n_c)
-    F = external_weights[clique_neur, :].sum(axis=0)
-    F /= G.s_c
-    F = np.reshape(F, (bar_size, bar_size))
-    return F, F.min(), F.max()
+def a_receptive_field(clique, graph, external_weights):
+    ''' returns the clique mean sensory weight
+    clique: list of neurons belonging to a clique'''
+    bar_size = graph.n_c//2
+    #recep_field = np.zeros((bar_size, bar_size))
+    recep_field = external_weights[clique, :].sum(axis=0)
+    recep_field /= graph.s_c
+    recep_field = np.reshape(recep_field, (bar_size, bar_size))
+    return recep_field, recep_field.min(), recep_field.max()
 
-def receptive_fields(G, external_weights):
-    n_clique = G.n_c
+def receptive_fields(graph, external_weights):
+    ''' compute receptive fields of every clique '''
     recep_fields = []
 
-    for i in range(n_clique):
-        F, F_min, F_max = a_receptive_field(i, G, external_weights)
-        if i==0:
-            Min = Max = F.mean()
-        if Min > F_min:
-            Min = F_min
-        if Max < F_max:
-            Max = F_max
-        recep_fields.append(F)
-    return recep_fields, Min, Max
+    for i, clique in enumerate(graph.clique_list):
+        recep_field, rf_min, rf_max = a_receptive_field(clique, graph, external_weights)
+        if i == 0:
+            glob_min = glob_max = recep_field.mean()
+        if glob_min > rf_min:
+            glob_min = rf_min
+        if glob_max < rf_max:
+            glob_max = rf_max
+        recep_fields.append(recep_field)
+    return recep_fields, glob_min, glob_max
