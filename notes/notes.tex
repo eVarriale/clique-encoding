@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[10pt,a4paper]{article}
 \usepackage[latin1]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -76,7 +76,7 @@
 		\begin{equation}
 			I_j = \sum_k z_{jk} u_k \varphi_k y_k, \quad y_k = \frac{1}{1+\exp \left(- a x_k \right)}
 		\end{equation}
-		where $u$ controls the probability with which synaptic vesicles pop, and $\varphi$ models the number of available vesicles. In practice, there is an \emph{effective} pre-synaptic activity $\tilde{y}_k = u_k \varphi_k y_k$. These two additional variables have the following dynamics:
+		where $u$ controls the probability with which synaptic vesicles pop, and $\varphi$ models the number of available vesicles. In practice, there is an \emph{effective} pre-synaptic activity $\tilde{y}_k = u_k \varphi_k y_k$, as opposed to the ``somatic'' activity. These two additional variables have the following dynamics:
 		\begin{equation}
 			\dot{u}_j = \frac{U_y -u}{T_u}, \quad U_y = 1 + \left( U_\text{max} -1 \right) y_j, \quad U_\text{max} = 4
 		\end{equation}
@@ -121,7 +121,87 @@
 		\end{figure}
 		
 		\subsection{Learning rule}
+		There can be another term that is added to the right hand side of the first equation in Eq. \ref{eq:neuron}, due to an external sensory signal:
+		\begin{equation}
+				\Delta E_j = \sum_l v_{jl} y_l, \quad v_{jl} > 0
+		\end{equation}
+		The input $\vec{y}$ comes from the bars problem and each $y_j$ can be either $0$ or $1$. 
 		
+		We are searching for a synaptic plasticity rule for the $v_{jl}$'s that works with the autonomous dynamics to ideally make each clique sensitive to a single bar.
+		
+		\paragraph{First rule $\dot{x}$}
+		We first considered the following rule:
+
+		\begin{gather}
+		\tau_v \frac{d}{dt} v_{jl} = \dot{x}_j \left(\Delta E_j + I_j\right) v_{jl} c_j y_l\\
+		c_j = \tanh{\left[10 \left(V_t - \Delta E_j \right)\right]}, \quad V_t = V^{\text{ina}} + y_j \left(V^{\text{act}} - V^{\text{ina}}\right) \\ 
+		\tau_v = 200, \quad V^{\text{ina}} = 0.3, \quad V^{\text{act}} = 0.9,
+		\end{gather}
+		which does not lead to well defined receptive fields, as shown in Fig. \ref{fig:std_complete}. The response shape does not change much, but it lowers. This decrease is probably due to the normalization factor $c$, if removed the response increases.
+		
+		\begin{figure}[t]
+			\centering
+			\includegraphics[width=0.49\linewidth]{./8x4_g8_x}
+			\includegraphics[width=0.49\linewidth]{./8x4_g8_xderivative}
+			\label{fig:membrane_potential}
+			\caption{On the left the membrane potential over time, on the right its derivative.}
+		\end{figure}	
+			
+		\begin{figure}
+			\centering
+			\includegraphics[width=1\linewidth]{./complete_std2}
+			\caption{Full lines show response after 6000 bar input, dashed lines show initial response. On the first row there is the input from the bars, on the second the receptive fields of the most responsive cliques, on the third every receptive field.}
+			\label{fig:std_complete}
+		\end{figure}
+				
+		The problems probably are:
+			\begin{itemize}
+				\item The membrane potential varies all of the time, see Fig. \ref{fig:membrane_potential}
+				\item When a winning clique ``loses'', \emph{both} $\dot{x}_j$ and  $\left(\Delta E_j + I_j\right)$ are negative so that $v_{jl}$ is positive, modulo the normalization factor $c_j$
+			\end{itemize}
+		To address the first problem we replaced $\dot{x}_j$ with $\dot{y}_j$ by using
+		\begin{equation}
+		\frac{d}{dt}y(x) = a y (1-y) \dot{x}
+		\end{equation}
+		the result is basically the same, but the final response is even closer to the initial one.
+		This also happens if instead of the term $\Delta E_j + I_j$ there $\sigma\left(\Delta E_j + I_j\right)$ which is non 0 only in the positive case.
+		
+		It seems that the normalization factor is doing most of the work, we have to think about that. A different approach could be to find a good rule for increasing the weights connecting the input neuron to the winning clique, and decreasing those connecting to different cliques, with some kind of competition of synapses belonging to the same input neuron.
+		
+		\newpage
+		\paragraph{New network, simpler rule} One of the limitations of the above approach is that the network is effectively a \emph{ring} of cliques and external sensory input can only activate neighbouring cliques. So we have built a network in which every clique can activate any other.
+		
+		In this new network the autonomous dynamics is slower and cycles through only three cliques, even if there are more, see Fig \ref{fig:clique_net_activity}. It's not clear why previously active cliques receive a larger input, thus having a larger inhibitory effect, see Fig \ref{fig:clique_net_tsodyks}, and winning the competition. 
+		
+		\begin{figure}
+			\centering
+			\includegraphics[width=1\linewidth]{./clique_net_activity}
+			\label{fig:clique_net_activity}
+			\caption{With the new network only three cliques are visited}
+		\end{figure}
+		
+		\begin{figure}
+			\centering
+			\includegraphics[width=1\linewidth]{./clique_net_tsodyks}
+			\label{fig:clique_net_tsodyks}
+			\caption{A clique wins when it gets larger input, thus larger inhibition due to the full depletion model}
+		\end{figure}
+		
+		Despite this flaw, a simplified equation for $\dot{v}_{jl}$, with a learning term proportional to $\dot{y}_j$ and a slow decay term, namely:
+		\begin{gather}
+		\frac{d}{dt} v_{jl} = \dot{y}_j v_{jl} c_j y_l / \tau_v  - v_{jl} y_l / \tau_d\\
+		c_j = \tanh{\left[10 \left(V_t - \Delta E_j \right)\right]}, \quad V_t = V^{\text{ina}} + y_j \left(V^{\text{act}} - V^{\text{ina}}\right) \\ 
+		\tau_v = 1, \quad \tau_d = 600 000 \quad V^{\text{ina}} = 0.3, \quad V^{\text{act}} = 0.8,	
+		\end{gather}
+		after 400 bars input one gives the results shown in Fig. \ref{fig:comp_decay_ysens}, which are quite good.
+		The very small time scale $\tau_v = 1$ is necessary because $\dot{y} \approx O\left(10^{-2}\right)$.
+		
+		\begin{figure}
+			\centering
+			\includegraphics[width=1\linewidth]{./comp_decay_ysens}
+			\label{fig:comp_decay_ysens}
+			\caption{}
+		\end{figure}
 		
 		\newpage
 		\printbibliography

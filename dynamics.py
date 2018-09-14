@@ -49,68 +49,105 @@ def target(membrane_potential, gain, threshold, weights, gain_rule, sensory_sign
     elif gain_rule == 3:
         da = 0.
 
-    inhib_input = np.dot(weights * (weights<0), activity)
-    dV = sensory_plasticity(sensory_inp, inhib_input, sensory_signal, dx, sensory_weights, activity)# - 0.0001 * sensory_weights
-
+    #inhib_input = np.dot(weights * (weights<0), activity)
+    dV, nwc, c = sensory_plasticity(sensory_inp, recurrent_input,
+                                    membrane_potential, sensory_signal, dx,
+                                    sensory_weights, activity)
     return dx, db, da, activity, x_inp, sensory_inp, dV
 
 U_max = 4.
-T_u = 30. #10.
+T_u_inh = 30. #10.
+T_φ_inh = 60. #20.
 
-T_φ = 60. #20.
+T_u_exc = 300
+T_φ_exc = 1200
 T_x = 20.
-T_v = 100.
-gain = 10
 
-def full_depletion(membrane_potential, full_vesicles, vesic_release, excit_weights, inhib_weights, sensory_signal=None, sensory_weights=None):
+gain = 10#10
+
+def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh, 
+                   excit_weights, 
+                   inhib_weights, sensory_signal=None, sensory_weights=None):
 
     ''' Next step with Euler integration '''
 
     activity = activation(membrane_potential, gain)
-    # effective_inhib_weights = inhib_weights * full_vesicles * vesic_release
-    effective_activity = activity * full_vesicles * vesic_release
+    noise = 1#np.random.uniform(0.99,1.01,activity.shape)
+    # effective_inhib_weights = inhib_weights * full_vesicles_inh * vesic_release_inh
+    effective_activity_inh = activity * full_vesicles_inh * vesic_release_inh
+    #effective_activity_exc = activity * full_vesicles_exc * vesic_release_exc
     # This enforces Tsodyks-Markram rule I_j = sum_k z_jk phi_k u_k y_k
-    excit_input = np.dot(excit_weights, activity)
-    #excit_input = np.dot(excit_weights, effective_activity)
-    inhib_input = np.dot(inhib_weights, effective_activity)
+    excit_input = np.dot(excit_weights, activity*noise)
+    #excit_input = np.dot(excit_weights, effective_activity_exc)
+    inhib_input = np.dot(inhib_weights, effective_activity_inh*noise)
     sensory_inp = np.dot(sensory_weights, sensory_signal)
     total_input = excit_input + inhib_input + sensory_inp
 
     dx = (total_input - membrane_potential) / T_x
 
-    U_y = 1 + (U_max -1) * activity
-    d_vesic_release = (U_y - vesic_release) / T_u
+    U_y = 1 + (U_max - 1) * activity
+    d_u_inh = (U_y - vesic_release_inh) / T_u_inh
+    #d_u_exc = (U_y - vesic_release_exc) / T_u_exc
 
-    ϕ_u = 1 - vesic_release * activity / U_max
-    d_full_vesicles = (ϕ_u - full_vesicles) / T_φ
+    ϕ_u_inh = 1 - vesic_release_inh * activity / U_max
+    d_φ_inh = (ϕ_u_inh - full_vesicles_inh) / T_φ_inh
+    #ϕ_u_exc = 1 - vesic_release_exc * activity / U_max
+    #d_φ_exc = (ϕ_u_exc - full_vesicles_exc) / T_φ_exc
 
-    #dV = 0.001 * np.outer( dx * activation(ext_inp - recurrent_input, 4, 0), ext_signal )# - 0.0001 * ext_weights
-    if (sensory_signal == 0.).all():
-        dV = np.zeros(sensory_weights.shape)
-    else:
-        dV = sensory_plasticity(sensory_inp, inhib_input, sensory_signal, dx, sensory_weights, activity)
+    #if (sensory_signal == 0.).all():
+    #    dV = learning = decay = np.zeros(sensory_weights.shape)
+    #    new_winning_clique = c = np.zeros(membrane_potential.shape)
+
+    #else:
+    dV, learning, decay = sensory_plasticity(sensory_inp, inhib_input+excit_input,
+                                    membrane_potential, sensory_signal, dx,
+                                    sensory_weights, activity)
     #pdb.set_trace()
-    return dx, d_vesic_release, d_full_vesicles, activity, total_input, sensory_inp, dV
+    return dx, d_u_inh, d_φ_inh, activity, total_input, sensory_inp, dV, learning, decay  
+    #return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
 
-T_l = 1000
-T_f = 60000
+T_l = 2000
+T_f = 10 * 60 * 1000
+T_v = 1
 
-def sensory_plasticity(sensory_inp, inhib_input, sensory_signal, dx, sensory_weights, activity):
+def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signal, 
+                       dx, sensory_weights, activity):
     #
-    V_ina = 0.2
-    V_act = 0.9
-    V_target = V_ina + activity * (V_act - V_ina)
-    c = np.tanh(10*(V_target - sensory_inp))
-    new_winning_clique = sensory_inp + inhib_input
-    #positive = 0.001 * np.outer(dx * activation(new_winning_clique, 10, 0) * c , sensory_signal)
+    V_ina = 0.3
+    V_act = 0.8#8
+
+    if (sensory_signal != 0.).any():
+        V_target = V_ina + activity * (V_act - V_ina)
+        c = 1 * np.tanh(10*(V_target - sensory_inp))
+        #new_winning_clique = sensory_inp + inhib_input 
+        # standard rule
+
+        #new_winning_clique = sensory_inp + recur_inp
+
+        new_winning_clique = 1# - inhib_input - excit_input
+
+        #new_winning_clique = activation(sensory_inp + inhib_input, 10, 0.1)#, 0.5)
+        
+        #new_winning_clique = 1 - np.heaviside((sensory_inp+recur_inp)*recur_inp, .5)
+        #new_winning_clique = 1 - activation((sensory_inp+recur_inp)*recur_inp, 100)
+        
+        #new_winning_clique = np.sign(sensory_inp + inhib_input)
+
+        dy = gain * activity * (1 - activity) * dx
+        #np.maximum(dy, 0 , dy)
+        learning = np.outer(dy * new_winning_clique * c, sensory_signal)
+        #pdb.set_trace()
+    else:
+        learning = np.zeros(sensory_weights.shape)
+        new_winning_clique = c = np.zeros(dx.shape)
     
-    positive = np.outer(dx * new_winning_clique * c, sensory_signal) / T_l
-    #negative = 0.0001 *  np.outer(dx * activation(-new_winning_clique, 10, 0), 1 - sensory_signal)
-    #dV =  (positive - negative) * sensory_weights 
-    losing_cliques = 1 - new_winning_clique
-    negative = - np.outer(losing_cliques * c, sensory_signal) / T_l
-    dV = (positive + 0*negative)* sensory_weights# - sensory_weights / T_f
-    return dV
+    #losing_cliques = 1 - new_winning_clique
+    #decay =  - np.outer(losing_cliques, sensory_signal)
+    decay = -1 * sensory_signal
+    #w_target = 0.0#5
+
+    dV = (learning / T_v + decay / T_f) * sensory_weights# - decay * w_target / T_f
+    return dV, learning, decay
 
 def bars_input(bar_size, prob):
     ''' Input from the bar_size x bar_size bars problem, 
@@ -129,4 +166,4 @@ def bars_input(bar_size, prob):
     assert y.sum() == (V + H) * bar_size - V * H, 'bars_input error'
 
     #pdb.set_trace()
-    return vector_input
+    return vector_input, V + H

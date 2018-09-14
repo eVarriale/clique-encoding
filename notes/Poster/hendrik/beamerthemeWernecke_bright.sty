@@ -1,0 +1,213 @@
+\ProvidesPackage{beamerthemeWernecke_bright}  % this style was created by Thomas Deselaers an Philippe Dreuw
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{goethecolours2014}
+\selectcolormodel{cmyk}
+\mode<presentation>
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PREDEFINED OBJECTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% BODY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{background canvas}{bg=white}
+
+% HEADLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{headline}{fg=leitfarbe,bg=grau2}
+
+\setbeamercolor{separation line}{bg=grau2}
+\setbeamercolor{title in headline}{fg=leitfarbe}
+\setbeamercolor{author in headline}{fg=leitfarbe}
+\setbeamercolor{institute in headline}{fg=leitfarbe}
+
+%\setbeamercolor{framesubtitle}{fg=ta3orange, bg=ta2gray}
+
+
+\setbeamertemplate{headline}{  
+  \leavevmode
+
+  \begin{beamercolorbox}[wd=\paperwidth]{headline}
+    \begin{columns}[T]
+      \begin{column}{.165\paperwidth}%\centering
+      \vspace{30pt}
+      \fboxrule.2pt\fboxsep8pt
+      \hspace{48pt}\colorbox{grau2}{\begin{minipage}{7.5cm}
+	  %\textcolor{black}{financial support by:}\\[.3\baselineskip]
+	  %\includegraphics[width=7.5cm]{dfg_logo_blau}\\[\baselineskip]
+      \end{minipage}}
+      \vspace{-10pt}
+      \end{column}
+      \begin{column}{.65\paperwidth}
+        \vskip8ex
+        %\raggedleft
+	\centering
+        \usebeamercolor{title in headline}{\color{fg}\textbf{\huge{\inserttitle}}\\[3ex]}
+        \usebeamercolor{author in headline}{\color{fg}\Large{\insertauthor}\\[1ex]}
+        \usebeamercolor{institute in headline}{\color{fg}\large{\insertinstitute}\\}
+        \vskip1ex
+      \end{column}
+      \begin{column}{.16\paperwidth}
+        \vskip10ex
+        %\begin{center}
+          \vfill\hfill\includegraphics[width=13cm]{GU-Logo-blau-gross.png}
+        %\end{center}
+        \vskip1ex
+      \end{column}
+      \begin{column}{.02\paperwidth}
+      \end{column}
+    \end{columns}
+    \vskip5ex
+  \end{beamercolorbox}
+
+  \begin{beamercolorbox}[wd=\paperwidth]{lower separation line head}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+}
+
+
+% FOOTLINE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{author in head/foot}{fg=leitfarbe, bg=grau2}
+\setbeamercolor{title in head/foot}{fg=grau1, bg=leitfarbe}
+\setbeamercolor{footline}{fg=leitfarbe, bg=grau2}
+\setbeamerfont{footline}{size=\fontsize{10}{15},series=\tt}
+\setbeamercolor{lower separation line foot}{bg=grau3}
+\setbeamercolor{upper separation line foot}{bg=grau2}
+
+\setbeamertemplate{footline}{
+  \begin{beamercolorbox}[wd=\paperwidth]{upper separation line foot}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+  
+  \leavevmode%
+  \begin{beamercolorbox}[ht=3.7ex,leftskip=3em,rightskip=10pt]{author in head/foot}%
+    \fontsize{28}{25}\texttt{\insertshortauthor}
+    \hfill
+     \vskip1ex
+  \end{beamercolorbox}
+  \vskip0pt%
+  \begin{beamercolorbox}[wd=\paperwidth]{lower separation line foot}
+    \rule{0pt}{3pt}
+  \end{beamercolorbox}
+}
+% bibliography %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% bibstyle colors
+%\setbeamertemplate{bibliography item}{[\theenumiv]}
+\setbeamertemplate{bibliography item}[text]
+\setbeamercolor{bibliography item}{fg=leitfarbe}
+\setbeamercolor{bibliography entry title}{fg=black}
+\setbeamercolor{bibliography entry author}{fg=black}
+\setbeamercolor{bibliography entry location}{fg=black}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MULTIPLE USERDEFINED OBJECTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\mode<all>
+%\setbeamertemplate{bibliography item}[text]
+\setbeamertemplate{navigation symbols}{}  % no navigation on a poster
+\setbeamercolor*{normal text}{fg=magenta, bg=grau1}
+\setbeamercolor{structure}{fg=leitfarbe}
+%\usefonttheme[onlymath]{serif}
+\usefonttheme{professionalfonts}
+
+
+% BLOCK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamerfont*{block title}{series=\bf,size=\fontsize{35}{42}}%{30}{32}}
+\setbeamercolor*{block title}{bg=white, fg=leitfarbe}
+\setbeamerfont*{block body}{family=\sffamily, size=\fontsize{30}{36}}%{28}{30}}
+\setbeamercolor*{block body}{bg=white,fg=black}
+\setbeamercolor*{separation line box}{bg=leitfarbe}
+
+\setbeamertemplate{block begin}{
+  \vskip1.25ex
+  \begin{beamercolorbox}[ht=3.5ex,dp=0.1ex,center,leftskip=-1em,colsep*=.75ex]{block title}%
+    \usebeamerfont*{block title}%
+%    {\phantom{Gg}\insertblocktitle}% phantom because of baseline problem
+     {\phantom{Gg}\insertblocktitle}
+  \end{beamercolorbox}%
+  \vskip-40pt
+  \begin{beamercolorbox}[wd=1.025\textwidth]{separation line box}
+    \rule{0pt}{2.5pt}
+  \end{beamercolorbox}
+  
+  {\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip0.0pt}}%
+  \usebeamerfont*{block body}%
+  \begin{beamercolorbox}[leftskip=1em,colsep*=.75ex,sep=0.5ex,vmode]{block body}%
+    \ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.75ex}\vbox{}%
+  }
+  \setbeamertemplate{block end}{
+  \end{beamercolorbox}
+}
+
+% Alert BLOCK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{block alert title}{fg=grau2,bg=leitfarbe}
+\setbeamercolor{block alert body}{fg=black,bg=grau2}
+
+
+% DEFINITION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\setbeamercolor*{block title example}{fg=magenta, bg=leitfarbe}
+
+% ITEMIZE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% adapt height of imtemize rectangles
+\setbeamertemplate{itemize items}[triangle]
+\setbeamertemplate{itemize item}{\raisebox{0.12ex}{$\blacktriangleright$}\hskip0.1em}
+\setbeamertemplate{itemize subitem}{\raisebox{0.12ex}{$\triangleright$}\hskip0.1em}
+\setbeamertemplate{itemize subsubitem}{\raisebox{0.12ex}{$\blacktriangleright$}\hskip0.1em}
+% or define your own template using \defbeamertemplate{itemize item}, see beameruserguide.pdf
+
+% equal font sizes for all levels
+\setbeamerfont{body}{size=\usebeamerfont{block body} \selectfont}
+\setbeamerfont{itemize/enumerate body}{size=\usebeamerfont{block body} \selectfont}
+\setbeamerfont{itemize/enumerate subbody}{size=\usebeamerfont{block body} \selectfont}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\usebeamerfont{block body} \selectfont}
+\setbeamercolor{itemize subsubitem}{fg=grau3}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% lenghts %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newlength{\columnheight}
+\setlength{\columnheight}{105cm}
+
+% custom made commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\singleitem}[1]{\begin{itemize}\item #1\end{itemize}\vskip.15\baselineskip}
+\newcommand{\singleitemouter}[1]{\begin{itemize}\item #1\end{itemize}\vskip.30\baselineskip}
+\newcommand{\ackitem}[1]{\begin{itemize}\item \small{#1}\end{itemize}\vskip.10\baselineskip}
+
+\newcommand{\figitem}[1]{{\bfseries\textcolor{leitfarbe}{Fig.}}\;#1\vskip.15\baselineskip}
+\newcommand{\tabitem}[1]{{\bfseries\textcolor{leitfarbe}{Tab.}}\;#1\vskip.15\baselineskip}
+
+\newcommand{\highlight}[1]{{\bfseries\textcolor{leitfarbe}{#1}}}
+\newcommand{\highlightalt}[1]{{\bfseries\textcolor{leitfarbe}{#1}}}
+
+\newcommand{\singleitemcaption}[1]{\begin{itemize}\item {\fontsize{26}{28}\selectfont #1}\end{itemize}\vskip.15\baselineskip}
+
+% citation
+\let\oldcite=\cite                                                              
+\renewcommand{\cite}[1]{\textcolor{leitfarbe}{\oldcite{#1}}}
+
+% emphasised block for conclusions
+\newenvironment<>{emphblock}[1]{% emphasised block environment
+  \setbeamercolor{block title}{fg=leitfarbe,bg=white}%
+  \setbeamercolor{block body}{bg=grau2}
+  \begin{block}#2{#1}}{\end{block}}
+
+
+
+
+\newenvironment<>{refblock}[1]{% emphasised block environment
+  \setbeamerfont*{block body}{size=\fontsize{22}{24} \selectfont}
+  \begin{block}#2{#1}}{\end{block}}  
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
