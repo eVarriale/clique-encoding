@@ -85,7 +85,7 @@ def geometric_net(n_clique, sparse=False, w_mean=1):
     adjacency_inh += adjacency_inh.T
     weights = w_mean * (adjacency_exc /(clique_size - 1) - adjacency_inh / clique_size)
     #weights = w_mean * (adjacency_exc - adjacency_inh)/(clique_size - 1)
-    
+    '''
     for clique_a in range(n_clique):
         clique_tour = (offset + np.arange(clique_size - clique_a)) % clique_size
         for clique_distance, relative_a in enumerate(clique_tour, 1):
@@ -99,9 +99,9 @@ def geometric_net(n_clique, sparse=False, w_mean=1):
             assert (relative_b - relative_a) % clique_size == 1
             weights[a, b] /= 2
             weights[b, a] /= 2
-           
+    '''  
     np.fill_diagonal(weights, 0.)
-    weights *= np.random.uniform(0.1, 1.9, weights.shape)
+    #weights *= np.random.uniform(0.9, 1.1, weights.shape)
 
     clique_list = [[i*clique_size + j for j in range(clique_size)] for i in range(n_clique)]
     graph = set_up_graph(weights, n_clique, clique_size, clique_list, sparse)

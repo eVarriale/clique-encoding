@@ -154,10 +154,10 @@ def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule,
     #legend1 = plt.legend(title='Cliques', loc=1,frameon=False)
     #ax.add_artist(legend1)
 
-    if bars_time is not None:
+    if bars_time is not None and (bars_time != -1).any():
         bars_time = bars_time[-time_plot.size:]
         colors = color_map(5)
-        alpha_values = [0.1, 0.3, 0.5, 0.7, 0.7]
+        alpha_values = [0.05, 0.3, 0.5, 0.7, 0.7]
         fills = []
         ylim = ax.get_ylim()
         for i, c in enumerate(colors[:-1]):
@@ -174,9 +174,10 @@ def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule,
 
         # Create a legend for the first line.
         first_legend = plt.legend(handles=[f for f in fills], title='Bars', loc=4, frameon=False)
+    ax.set_yticks([0, 1])
     plt.tight_layout()
     if save_figures:
-        savefig_options = {'papertype' : 'a5', 'dpi' : 180}
+        savefig_options = {'papertype' : 'a5', 'dpi' : 300}
         fig.savefig('{}x{}_s{}_r{}'.format(graph.n_c, graph.s_c, graph.sparse, gain_rule), **savefig_options)
         #plt.close(fig)
         #Y = 0

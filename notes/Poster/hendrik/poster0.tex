@@ -11,7 +11,7 @@
 % PDF and title settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Clique encoding in recurrent neural networks} %\\[0.2\baselineskip]with a second line
 \author[varriale@itp.uni-frankfurt.de]{Emanuele Varriale, Claudius Gros}
-\institute{Institute for Theoretical Physics, Goethe-University, Frankfurt (Main), Germany}
+\institute{Institute for Theoretical Physics, Goethe University, Frankfurt am Main, Germany}
 \date{\today}
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,8 +68,8 @@
 								\label{eq:neuron}
 							\end{gather*}
 							\begin{figure}
-								\includegraphics[width=.8\linewidth]{ring_activity2}
-								\caption{Example activity on a ring of 6 neurons, with nearest neighbour excitatory connections.}
+								\includegraphics[width=.8\linewidth]{internal_activity}
+								\caption{Internal activity in the network shown above.}
 							\end{figure}
 							
 						\end{block}
@@ -164,11 +164,35 @@
 							\end{column}								
 							
 							\begin{column}[T]{.5\textwidth}
+								The learning procedure has to map different bars onto different cliques, by taking advantage of the fact that the sensory input can ``steer'' the competing dynamics, thus changing the order of winning cliques.
 								
+								We employ the following learning rule:
+								\begin{gather*}
+									\frac{d}{dt} v_{jl} = \left(\dot{y}_j c_j / \tau_v  - 1 / \tau_d\right) y_l^{\text{ext}} v_{jl}  \\
+									c_j = \tanh{\left[a \left(V_t - \Delta E_j \right)\right]} \\
+									 V_t = V^{\text{ina}} + y_j \left(V^{\text{act}} - V^{\text{ina}}\right)\\
+									\tau_v \ll \tau_d, \quad V^{\text{ina}} < V^{\text{act}}.	
+								\end{gather*}
+								We note that:
+								\begin{itemize}
+									\item the factor $v_{jl}$ ensures that the weights do not change sign,
+									\item pre-synaptic activity $y_l^{\text{ext}}$ is necessary to learning,
+									\item $\dot{y}_j$ ensures that learning only takes place when the activity changes significantly,
+									\item the term $c_j$ prevents runaway growth or shrinking of weights, with the sliding threshold $V_t$,
+									\item the slow decay term $-1/\tau_d$ shrinks non-useful synapses.
+								\end{itemize}
+								
+								\begin{equation}
+									R(\alpha, \beta) = \frac{1}{S(C_\alpha)} \sum_{i\in C_\alpha, l} v_{il} y_l^{\text{ext}}
+								\end{equation}
+								
+								\begin{equation}
+									F(\alpha, l) = \frac{1}{S(C_\alpha)} \sum_{i\in C_\alpha} v_{il}
+								\end{equation}
 							\end{column}
 						\end{columns}
 							
-										
+						
 					\end{block}
 						
 

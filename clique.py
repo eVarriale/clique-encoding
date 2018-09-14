@@ -28,7 +28,7 @@ def reload_mod():
 
 # Global variables
 
-sim_steps = 1*10*1000 # integration steps
+sim_steps = 1*30*1000 # integration steps
 delta_t = 1 # integration time step in milliseconds
 
 w_mean = 1
@@ -40,11 +40,10 @@ clique_size = 1 # >2 !, otherwise cliques don't make sense
 
 gain_rule = 0 # 1 : set target variance, 2 : self organized variance, 3 : gain is fixed
 
-input_on = sim_steps
 avg_bars = 1 # average # of bars per input
 
-T_patt = 40 * 10# * 5# / delta_t #30  # bars lasting time
-T_inter = 100 * 10# / delta_t  # time beetween patterns
+T_patt = 40# * 10# * 5# / delta_t #30  # bars lasting time
+T_inter = 100# * 10# / delta_t  # time beetween patterns
 
 v_jl_sampling = 1000
 bars_start = sim_steps# * 0
@@ -106,6 +105,7 @@ u_exc = np.random.normal(1, 0.1, neurons)
 full_vesicles_exc_record = np.zeros(neurons_over_time)
 vesic_release_exc_record = np.zeros(neurons_over_time)
 
+input_on = sim_steps
 how_many_inputs = 0
 how_many_bars = 0
 
@@ -267,7 +267,7 @@ def save_stuff():
         max_attempts = 10
         for attempt in range(max_attempts):
             try:
-                file_name = './log/'+str(version)+'_'+key+'.pdf'
+                file_name = './log/' + str(version) + '_' + key + '.pdf'
                 #print(file_name)
                 f = open(file_name, 'x')
             except FileExistsError as error:

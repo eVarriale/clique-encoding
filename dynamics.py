@@ -72,7 +72,7 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
     ''' Next step with Euler integration '''
 
     activity = activation(membrane_potential, gain)
-    noise = 1#np.random.uniform(0.99,1.01,activity.shape)
+    noise = np.random.normal(1, .01, activity.shape)
     # effective_inhib_weights = inhib_weights * full_vesicles_inh * vesic_release_inh
     effective_activity_inh = activity * full_vesicles_inh * vesic_release_inh
     #effective_activity_exc = activity * full_vesicles_exc * vesic_release_exc
