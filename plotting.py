@@ -282,6 +282,7 @@ def receptive_fields(graph, ext_weights, axs=None, most_responding=None):
         loop_over = most_responding
     for i, j in enumerate(loop_over):
         img = axs[i].matshow(rec_fields[j], vmin=Min, vmax=Max)
+        #img = axs[i].matshow(rec_fields[j], vmin=0, vmax=1)
         axs[i].tick_params(axis='both', left=False, top=False, right=False,
                            bottom=False, labelleft=False, labeltop=False,
                            labelright=False, labelbottom=False)

@@ -4,6 +4,9 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 \graphicspath{{./images/}}
+
+
+\setbeamertemplate{caption}[numbered]
 % packages and settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \usepackage{grffile}
 \boldmath	
@@ -33,55 +36,65 @@
 						%%% CONTENT of column 1 %%%
 						%\vfill
 						\begin{block}{Introduction}
-							The internal brain activity is only modulated, not driven, by sensory input \cite{fiser2004modulation}. 
+							Internal brain activity is only modulated, not driven, by sensory input \cite{fiser2004modulation}. 
 							
-							Therefore external sensory stimuli interact with an autonomously active network, in a way that allows semantic learning.
+							Therefore the semantic learning that takes place in the brain is a result of the interaction of external sensory stimuli with an autonomously active network.
 							
-							A network with competing neuronal assemblies can show a transient state dynamics, i.e.\ an infinite time series of meta-stable attractor states.
+							Clique encoding is a form of sparse coding, that is backed up by experimental findings about real-time memory representation in the hippocampus \cite{lin2006clique}.
 							
-							We propose a learning rule that correlates such attractor states with sensory inputs from the bars and stripes problem, expanding from \cite{gros2017semantic}.
+							For this reason we work with a network with competing cliques, where the activity ``flows'' from one clique to another, with a transient state dynamics.
+							
+							We propose a learning rule that correlates such transient states with sensory inputs from the bars and stripes problem, prompted by \cite{gros2010semantic}.
 						\end{block}
 						
 						\vfill
 						\begin{block}{Network architecture}
-							With the right network architecture it can be easy to pinpoint attractor states. 
+							The term clique comes from graph theory and it refers to maximal fully connected sub-graphs. 
 							
-							We use networks as the shown in Fig. \ref{fig:network}, which is formed by cliques, i.e.\ complete sub-graph, with excitatory connections within cliques and mostly inhibitory ones across cliques, so that cliques have a \emph{competitive dynamics}. 
+							In a network formed by cliques with excitatory synapses within and inhibitory ones across, the dynamics is characterized by competing cliques. 
 							
-							Because of the network topology, the winning clique inhibits every other, so that this is a stable state, as long as it is active.
+							An active clique inhibits every other, so that this is a stable state.
+							
+							We use networks as the one shown in Fig. \ref{fig:network}, in which activity can spread from one clique to any other.
+										
 							
 							\begin{figure}
-								\includegraphics[width=.8\linewidth]{network2.pdf}
-								\caption{An example of our network architecture.}
+								\centering
+								\includegraphics[width=.7\linewidth]{network2.pdf}
+								\caption{An eight clique network, each with seven nodes. Only excitatory links are shown. Each node within a clique excite a neuron in a different clique. The network is completed with an inhibitory background of connections.}
 								\label{fig:network}
 							\end{figure}
 						\end{block}		
 										
 						\vfill
 						\begin{block}{Neuronal dynamics}
-							We use a rate-encoding model, in which each neuron has a membrane potential $x_j$, a sigmoidal activation function $\sigma$ and receives excitatory input $E_j$ and inhibitory $I_j$:
+							 The $j$-th neuron has membrane potential $x_j$, activity $y_j$ and receives excitatory and inhibitory input, respectively $E_j$ and $I_j$. The rate-encoding model is governed by the following equations:
 							\begin{gather*}
 								\tau_x \dot{x}_j = -x_j + E_j + I_j\\
 								y_j = \sigma \left(x_k\right) = \frac{1}{1+\exp \left(-a x_k \right) } \\
 								E_j = \sum_{k} w_{jk} y_k \\
-								I_j = \sum_k z_{jk} \tilde{y}_k \\
+								I_j = \sum_k z_{jk} y_k.
 								\label{eq:neuron}
 							\end{gather*}
+							These equations lead to an attractor network, and the system rapidly relaxes to a stable state.
+							
+							Inserting a pre-synaptic reservoir variable the effective output changes, i.e.\ $y_k \rightarrow \tilde{y}_k$, and a transient state dynamics is obtained, as in Fig. \ref{fig:activity}.
 							\begin{figure}
-								\includegraphics[width=.8\linewidth]{internal_activity}
-								\caption{Internal activity in the network shown above.}
+								\includegraphics[width=.7\linewidth]{double_activity}
+								\caption{Internal activity in the network shown above. The same colour is used for neurons belonging to the same clique, as shown in Fig. \ref{fig:network}.}
+								\label{fig:activity}
 							\end{figure}
 							
 						\end{block}
 						
 						
 						
-						\vfill
-						\begin{emphblock}{Conclusions}
-							\singleitem{That is really important to keep in mind.}
-							\singleitem{Furthermore ...}
-						\end{emphblock}
 						%\vfill
+						%\begin{emphblock}{Conclusions}
+						%	\singleitem{That is really important to keep in mind.}
+						%	\singleitem{Furthermore ...}
+						%\end{emphblock}
+						\vfill
 						%%% END CONTENT of column 1 %%%
 
 					 } % end of parbox
@@ -104,24 +117,29 @@
 						\begin{columns}
 							\begin{column}[T]{.5\textwidth}
 							\begin{figure}
-								\includegraphics[width=1\linewidth]{full_depletion.pdf}
-								\caption{Dynamics of the full depletion model, with high presynaptic activity.}
+								\includegraphics[width=1\linewidth]{double_depletion.pdf}
+								\caption{Dynamics of the full depletion model, with high presynaptic activity.  Inhibitory short-term plasticity is faster than excitatory.}
 								\label{fig:full_depletion}
 							\end{figure}	
 							\end{column}							
 							
 							\begin{column}[T]{.5\textwidth}
-								To enforce the transient state dynamics, the winning clique state has to become unstable after some time. 
+								Transient state dynamics requires winning clique states not to be stable. 
 								
-								This is achieved by lowering inhibitory signals in case of sustained activity, through the \emph{full depletion model}, that is inspired by the Tsodyks-Markram model \cite{tsodyks2008model}.
+								This is achieved through the Full-depletion model for short term plasticity, similar to the Tsodyks-Markram model \cite{tsodyks2008model}.
 								
-								The pre-synaptic activity $\tilde{y}_j$ is proportional to the somatic activity $y_j$, through two terms $u_j$ and $\varphi_j$.
-								
-								$u_j$ represents the likelihood of neurotransmitter release, which increases with high inputs, while $\varphi_j$ represents the concentration of available vesicles, that decreases while firing, according to the following dynamics:						
+								Each neuron has a pre-synaptic reservoir variable that is completely depleted after sustained firing, so that pre-synaptic activity is modulated by two terms:
+								\begin{itemize}
+									\item $u_j$ represents the likelihood of neurotransmitter release, which increases with Ca$^{2+}$ traces,
+									
+									\item $\varphi_j$ represents the concentration of available vesicles, that depletes while firing.
+								\end{itemize}
+							  The over-all short term plasticity is given by:			
 								\begin{gather*}
 									\tilde{y}_j = y_j u_j \varphi_j \\
 									\dot{u}_j = \frac{U_y -u}{T_u}, \quad U_y = 1 + \left( U_\text{max} -1 \right) y_j\\ 
-									\dot{\varphi}_j = \frac{\varPhi_u - \varphi}{T_\varphi}, \quad \varPhi_u = 1- \frac{u y_j}{U_\text{max}} \\	
+									\dot{\varphi}_j = \frac{\varPhi_u - \varphi}{T_\varphi}, \quad \varPhi_u = 1- \frac{u y_j}{U_\text{max}} \\
+									T^{\text{exc}} = 5 \cdot T^{\text{inh}}.
 								\end{gather*}
 
 							\end{column}
@@ -202,17 +220,19 @@
 						 \begin{thebibliography}{1}
 								\begin{column}[T]{.46\textwidth}
 									\bibitem{fiser2004modulation}
-										Fiser et al., Small modulation of ongoing cortical dynamics by sensory input during natural vision.
-										\emph{Nature}, 2004.
+									Fiser, J., Chiu, C. \& Weliky, M. Small modulation of ongoing cortical dynamics by sensory input during natural vision. Nature 431, 573 (2004).
 										
-									\bibitem{gros2017semantic}
-									Gros and Kaczor, Semantic learning in autonomously active recurrent neural network.
-									\emph{Logic Journal of the IGPL}, 2017.										
+										
+									\bibitem{lin2006clique} Lin, L., Osan, R. \& Tsien, J. Z. Organizing principles of real-time memory encoding: neural clique assemblies and universal neural codes. Trends in Neurosciences 29, 48–57 (2006).
+																								
 								\end{column}
 								\begin{column}[T]{.46\textwidth}
+									\bibitem{gros2010semantic}
+									Gros, C. \& Kaczor, G. Semantic learning in autonomously active recurrent neural networks. Log J IGPL 18, 686–704 (2010).
+									
 									\bibitem{tsodyks2008model}
-									Mongillo et al., Synaptic theory of working memory.
-									\emph{Science}, 2008
+									Mongillo, G., Barak, O. \& Tsodyks, M. Synaptic Theory of Working Memory. Science 319, 1543–1546 (2008).
+									
 								\end{column}
 						 \end{thebibliography}
 						\end{columns}

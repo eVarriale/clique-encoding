@@ -18,7 +18,7 @@ import dynamics
 import plotting as myplot
 import semantic
 
-plt.ion()
+#plt.ion()
 
 def reload_mod():
     importlib.reload(net)
@@ -28,7 +28,7 @@ def reload_mod():
 
 # Global variables
 
-sim_steps = 1*30*1000 # integration steps
+sim_steps = 1*10*1000 # integration steps
 delta_t = 1 # integration time step in milliseconds
 
 w_mean = 1
@@ -42,8 +42,8 @@ gain_rule = 0 # 1 : set target variance, 2 : self organized variance, 3 : gain i
 
 avg_bars = 1 # average # of bars per input
 
-T_patt = 40# * 10# * 5# / delta_t #30  # bars lasting time
-T_inter = 100# * 10# / delta_t  # time beetween patterns
+T_patt = 40 * (1 + 19 * (n_clique == 1))# * 5# / delta_t #30  # bars lasting time
+T_inter = 100 * (1 + 19 * (n_clique == 1))# / delta_t  # time beetween patterns
 
 v_jl_sampling = 1000
 bars_start = sim_steps# * 0
@@ -67,8 +67,8 @@ print(subtitle)
 
 #w_jk, z_jk, graph = net.rotating_clique_ring(n_clique, clique_size)
 #w_jk, z_jk, graph = net.rotating_clique_net(n_clique) # prof
-w_jk, z_jk, graph = net.geometric_net(n_clique)
-#w_jk, z_jk, graph = net.geometric_ring(n_clique, clique_size)
+w_jk, z_jk, graph = net.geometric_net(n_clique) # FLOWER
+#w_jk, z_jk, graph = net.geometric_ring(n_clique, clique_size) # use this for 1 neuron
 #w_jk, z_jk, graph = net.ring(n_clique, w_exc=0.4, w_inh=1)
 weights = w_jk + z_jk
 neurons = graph.number_of_nodes()
@@ -159,24 +159,25 @@ for time in tqdm(range(sim_steps)):
     # x : membrane potential, u_inh : vesicle release factor, φ_inh : number of full vesicles
     # y : activity, T : total input, S : sensory input
     # w_jk : excitatory recurrent, z_jk : inhibitory rec, v_jl : exc sensory
-    variation = dynamics.full_depletion(x, φ_inh, u_inh, w_jk,
+    variation = dynamics.full_depletion(x, φ_inh, u_inh, φ_exc, u_exc, w_jk,
                                         z_jk, ext_signal, v_jl)
-    dx, du_i, dφ_i, y, T, S, dV, learn, dec = variation
+    #dx, du_i, dφ_i, y, T, S, dV, learn, dec = variation
+    dx, du_i, dφ_i, du_e, dφ_e, y, T, S, dV, learn, dec = variation
     φ_inh += dφ_i
     u_inh += du_i
     full_vesicles_inh_record[:, time] = φ_inh
     vesic_release_inh_record[:, time] = u_inh
-    #φ_exc += dφ_e
-    #u_exc += du_e
-    #full_vesicles_exc_record[:, time] = φ_exc
-    #vesic_release_exc_record[:, time] = u_exc    
+    φ_exc += dφ_e
+    u_exc += du_e
+    full_vesicles_exc_record[:, time] = φ_exc
+    vesic_release_exc_record[:, time] = u_exc
 
     x += dx * delta_t
-    if not time % (sim_steps//100) and np.isnan(x).any(): 
+    if not time % (sim_steps//100) and np.isnan(x).any():
         print('\nNaN detected!\n')
         break
     v_jl += dV * delta_t
-    
+
     activity_record[:, time] = y# * (dV[:, 3] < 0).any()
     membrane_pot_record[:, time] = x
     input_record[:, time] = T
@@ -186,15 +187,14 @@ for time in tqdm(range(sim_steps)):
 
     learn_record[:, :, time] = learn
     dec_record[:, :, time] = dec
-    
 
 
 # Plotting
 
 # Setting up...
 
-#final_times = 10000
-#final_times = int(sim_steps/3)
+#final_times = 30000
+#final_times = sim_steps
 final_times = np.minimum(sim_steps, 10000)
 time_plot = np.arange(sim_steps-final_times, sim_steps)/int(1000/delta_t) # time in seconds
 neurons_plot = neurons
@@ -206,6 +206,12 @@ threshold_plot = threshold_record[:, -final_times:]
 sens_inp_plot = sensory_inp_record[:, -final_times:]
 full_vesicles_inh_plot = full_vesicles_inh_record[:, -final_times:]
 vesic_release_inh_plot = vesic_release_inh_record[:, -final_times:]
+effective_weights_plot_inh = vesic_release_inh_plot * full_vesicles_inh_plot
+
+full_vesicles_exc_plot = full_vesicles_exc_record[:, -final_times:]
+vesic_release_exc_plot = vesic_release_exc_record[:, -final_times:]
+effective_weights_plot_exc = vesic_release_exc_plot * full_vesicles_exc_plot
+
 
 learn_plot = learn_record[:, :, -final_times:]
 dec_plot = dec_record[:, :, -final_times:]
@@ -214,26 +220,38 @@ dec_plot = dec_record[:, :, -final_times:]
 
 list_of_plots = {}
 if not (vesic_release_inh_record==0).all() and neurons == 1:
-    fig_fulldep, ax_fulldep = plt.subplots()
-    plt.plot(time_plot, full_vesicles_inh_record.T, label = 'φ')
-    plt.plot(time_plot, vesic_release_inh_record.T, label = 'u')
-    effective_weights_records = vesic_release_inh_record * full_vesicles_inh_record
-    plt.plot(time_plot, effective_weights_records.T, label = 'φ$\cdot $u')
-    ax_fulldep.set(ylim=[-0.02, dynamics.U_max + .02], xlim=[1.8, 2.8])
-    ax_fulldep.set(xlabel='time (s)')
-    ax_fulldep.set_yticks([0, 1, effective_weights_records.max(), dynamics.U_max])
-    ax_fulldep.set_yticklabels(['0', '1', '{:2.1f}'.format(effective_weights_records.max()), '$U_{max}$'])
-    #ax_fulldep.set_xticks([1.8, 2.8])
-    ax_fulldep.set_xticklabels(['0', '0.2', '0.4', '0.6', '0.8', '1'])
-    plt.legend(frameon=False, prop={'size': 15})
+    fig_fulldep, ax_fulldep = plt.subplots(nrows=2, sharex=True)
+    ax_fulldep[0].plot(time_plot, full_vesicles_inh_record.T, label=r'$\varphi_i$')
+    ax_fulldep[0].plot(time_plot, vesic_release_inh_record.T, label='$u_i$')
+    ax_fulldep[0].plot(time_plot, effective_weights_plot_inh.T, label=r'$\varphi_i \cdot u_i$')
+    u_phi_max = effective_weights_plot_inh[:, 1800:].max()
+    ax_fulldep[0].set_yticks([0, 1, u_phi_max, dynamics.U_max])
+    ax_fulldep[0].set_yticklabels(['0', '1', '{:2.1f}'.format(u_phi_max), '$U_{max}$'])
+    ax_fulldep[0].legend(frameon=False, prop={'size': 15})
+
+    ax_fulldep[1].plot(time_plot, full_vesicles_exc_record.T, label=r'$\varphi_e$')
+    ax_fulldep[1].plot(time_plot, vesic_release_exc_record.T, label='$u_e$')
+    ax_fulldep[1].plot(time_plot, effective_weights_plot_exc.T, label=r'$\varphi_e \cdot u_e$')
+    u_phi_max = effective_weights_plot_exc[:, 1800:].max()
+    ax_fulldep[1].set_yticks([0, 1, u_phi_max, dynamics.U_max])
+    ax_fulldep[1].set_yticklabels(['0', '1', '{:2.1f}'.format(u_phi_max), '$U_{max}$'])
+    ax_fulldep[0].set(ylim=[-0.02, dynamics.U_max + .02], xlim=[1.8, 3.8])
+    ax_fulldep[1].set(xlabel='time (s)')
+    ax_fulldep[1].legend(frameon=False, prop={'size': 15})
+    
+    #ax_fulldep[0].set_xticks([1.8, 2.3, 2.8, 3.3])
+    #ax_fulldep[0].set_xticklabels(['0', '0.5', '1', '1.5'])
     plt.tight_layout()
+    #plt.savefig('./notes/Poster/hendrik/images/double_depletion.pdf', dpi=300)
     list_of_plots['full_depletion'] = fig_fulldep
 
 save_figures = False
-effect_plot = vesic_release_inh_plot * full_vesicles_inh_plot
-fig_ac, ax_ac = myplot.activity(graph, time_plot, neurons_plot, y_plot,
-                                threshold_plot, learn_plot[:,0,:], 0
-                                 ,bars_time=bars_time)
+
+fig_ac, ax_ac = myplot.activity(graph, time_plot, neurons_plot, y_plot, input_pl,
+                                effective_weights_plot_inh, 0)
+                                #, bars_time=bars_time)
+ax_ac.set_xlim([0,10])
+plt.savefig('./notes/Poster/hendrik/images/double_activity.pdf', dpi=300)                                
 list_of_plots['activity'] = fig_ac
 
 if (v_jl != v_jl_0).any() and neurons > 1:

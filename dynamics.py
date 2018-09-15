@@ -59,27 +59,26 @@ U_max = 4.
 T_u_inh = 30. #10.
 T_φ_inh = 60. #20.
 
-T_u_exc = 300
-T_φ_exc = 1200
+T_u_exc = 5 * T_u_inh
+T_φ_exc = 5 * T_φ_inh
 T_x = 20.
 
-gain = 10#10
+gain = 10# default : 10
 
 def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh, 
-                   excit_weights, 
+                   full_vesicles_exc, vesic_release_exc, excit_weights, 
                    inhib_weights, sensory_signal=None, sensory_weights=None):
 
     ''' Next step with Euler integration '''
 
     activity = activation(membrane_potential, gain)
-    noise = np.random.normal(1, .01, activity.shape)
-    # effective_inhib_weights = inhib_weights * full_vesicles_inh * vesic_release_inh
+    noise = 1#np.random.normal(1, 0.01, activity.shape)
     effective_activity_inh = activity * full_vesicles_inh * vesic_release_inh
-    #effective_activity_exc = activity * full_vesicles_exc * vesic_release_exc
+    effective_activity_exc = activity * full_vesicles_exc * vesic_release_exc
     # This enforces Tsodyks-Markram rule I_j = sum_k z_jk phi_k u_k y_k
-    excit_input = np.dot(excit_weights, activity*noise)
-    #excit_input = np.dot(excit_weights, effective_activity_exc)
-    inhib_input = np.dot(inhib_weights, effective_activity_inh*noise)
+    #excit_input = np.dot(excit_weights, activity*noise)
+    excit_input = np.dot(excit_weights, effective_activity_exc * noise)
+    inhib_input = np.dot(inhib_weights, effective_activity_inh * noise)
     sensory_inp = np.dot(sensory_weights, sensory_signal)
     total_input = excit_input + inhib_input + sensory_inp
 
@@ -87,12 +86,12 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
 
     U_y = 1 + (U_max - 1) * activity
     d_u_inh = (U_y - vesic_release_inh) / T_u_inh
-    #d_u_exc = (U_y - vesic_release_exc) / T_u_exc
+    d_u_exc = (U_y - vesic_release_exc) / T_u_exc
 
     ϕ_u_inh = 1 - vesic_release_inh * activity / U_max
     d_φ_inh = (ϕ_u_inh - full_vesicles_inh) / T_φ_inh
-    #ϕ_u_exc = 1 - vesic_release_exc * activity / U_max
-    #d_φ_exc = (ϕ_u_exc - full_vesicles_exc) / T_φ_exc
+    ϕ_u_exc = 1 - vesic_release_exc * activity / U_max
+    d_φ_exc = (ϕ_u_exc - full_vesicles_exc) / T_φ_exc
 
     #if (sensory_signal == 0.).all():
     #    dV = learning = decay = np.zeros(sensory_weights.shape)
@@ -103,8 +102,8 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
                                     membrane_potential, sensory_signal, dx,
                                     sensory_weights, activity)
     #pdb.set_trace()
-    return dx, d_u_inh, d_φ_inh, activity, total_input, sensory_inp, dV, learning, decay  
-    #return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
+    #return dx, d_u_inh, d_φ_inh, activity, total_input, sensory_inp, dV, learning, decay
+    return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
 
 T_l = 2000
 T_f = 10 * 60 * 1000
