@@ -18,7 +18,7 @@ import dynamics
 import plotting as myplot
 import semantic
 
-#plt.ion()
+plt.ion()
 
 def reload_mod():
     importlib.reload(net)
@@ -28,7 +28,7 @@ def reload_mod():
 
 # Global variables
 
-sim_steps = 1*10*1000 # integration steps
+sim_steps = 1 * 10 * 1000 # integration steps
 delta_t = 1 # integration time step in milliseconds
 
 w_mean = 1
@@ -90,10 +90,10 @@ sensory_inp_record = np.zeros(neurons_over_time)
 membrane_pot_record = np.zeros(neurons_over_time)
 
 
-a = np.random.normal(9, 0.1, neurons)
-b = np.random.normal(0.5, 0.1, neurons)
-gain_record = np.zeros(neurons_over_time)
-threshold_record = np.zeros(neurons_over_time)
+#a = np.random.normal(9, 0.1, neurons)
+#b = np.random.normal(0.5, 0.1, neurons)
+#gain_record = np.zeros(neurons_over_time)
+#threshold_record = np.zeros(neurons_over_time)
 
 φ_inh = np.random.normal(1, 0.1, neurons)
 u_inh = np.random.normal(1, 0.1, neurons)
@@ -124,8 +124,8 @@ ext_signal = np.zeros(input_size)
 
 bars_time = np.zeros(sim_steps) - 1
 
-learn_record = np.zeros((neurons, input_size, sim_steps))
-dec_record = np.zeros((neurons, input_size, sim_steps))
+#learn_record = np.zeros((neurons, input_size, sim_steps))
+#dec_record = np.zeros((neurons, input_size, sim_steps))
 
 
 # Main simulation
@@ -135,17 +135,17 @@ for time in tqdm(range(sim_steps)):
     # the sensory signal is activated every T_inter ms, for T_patt ms
     if time >= bars_start:
         if time == input_on + T_patt:
-            ext_signal *= 0 
-            if neurons == 1 : ext_signal = np.array([-10])
+            ext_signal *= 0
+            if neurons == 1: ext_signal = np.array([-10])
             bars_time[input_on:time] = bars_num
-        if time%T_inter == 0: 
+        if time%T_inter == 0:
             ext_signal, bars_num = dynamics.bars_input(bar_size, p_bars)
-            if neurons == 1 : ext_signal = np.array([10])
+            if neurons == 1: ext_signal = np.array([10])
             input_on = time
             how_many_inputs += 1
             how_many_bars += bars_num
 
-    ''' 
+    '''
     # dynamics for sliding threshold model
     # x : membrane potential, b : threshold, a : gain
     # y : activity, T : total input, S : sensory input
@@ -185,8 +185,8 @@ for time in tqdm(range(sim_steps)):
     if time%v_jl_sampling == 0:
         sensory_weight_record[:, :, time//v_jl_sampling] = v_jl
 
-    learn_record[:, :, time] = learn
-    dec_record[:, :, time] = dec
+    #learn_record[:, :, time] = learn
+    #dec_record[:, :, time] = dec
 
 
 # Plotting
@@ -201,8 +201,8 @@ neurons_plot = neurons
 y_plot = activity_record[:, -final_times:]
 input_pl = input_record[:, -final_times:]
 x_plot = membrane_pot_record[:, -final_times:]
-gain_plot = gain_record[:, -final_times:]
-threshold_plot = threshold_record[:, -final_times:]
+#gain_plot = gain_record[:, -final_times:]
+#threshold_plot = threshold_record[:, -final_times:]
 sens_inp_plot = sensory_inp_record[:, -final_times:]
 full_vesicles_inh_plot = full_vesicles_inh_record[:, -final_times:]
 vesic_release_inh_plot = vesic_release_inh_record[:, -final_times:]
@@ -213,13 +213,13 @@ vesic_release_exc_plot = vesic_release_exc_record[:, -final_times:]
 effective_weights_plot_exc = vesic_release_exc_plot * full_vesicles_exc_plot
 
 
-learn_plot = learn_record[:, :, -final_times:]
-dec_plot = dec_record[:, :, -final_times:]
+#learn_plot = learn_record[:, :, -final_times:]
+#dec_plot = dec_record[:, :, -final_times:]
 
 # Actually plotting stuff
 
 list_of_plots = {}
-if not (vesic_release_inh_record==0).all() and neurons == 1:
+if not (vesic_release_inh_record == 0).all() and neurons == 1:
     fig_fulldep, ax_fulldep = plt.subplots(nrows=2, sharex=True)
     ax_fulldep[0].plot(time_plot, full_vesicles_inh_record.T, label=r'$\varphi_i$')
     ax_fulldep[0].plot(time_plot, vesic_release_inh_record.T, label='$u_i$')
@@ -238,7 +238,7 @@ if not (vesic_release_inh_record==0).all() and neurons == 1:
     ax_fulldep[0].set(ylim=[-0.02, dynamics.U_max + .02], xlim=[1.8, 3.8])
     ax_fulldep[1].set(xlabel='time (s)')
     ax_fulldep[1].legend(frameon=False, prop={'size': 15})
-    
+
     #ax_fulldep[0].set_xticks([1.8, 2.3, 2.8, 3.3])
     #ax_fulldep[0].set_xticklabels(['0', '0.5', '1', '1.5'])
     plt.tight_layout()
@@ -250,8 +250,8 @@ save_figures = False
 fig_ac, ax_ac = myplot.activity(graph, time_plot, neurons_plot, y_plot, input_pl,
                                 effective_weights_plot_inh, 0)
                                 #, bars_time=bars_time)
-ax_ac.set_xlim([0,10])
-plt.savefig('./notes/Poster/hendrik/images/double_activity.pdf', dpi=300)                                
+#ax_ac.set_xlim([0,10])
+#plt.savefig('./notes/Poster/hendrik/images/double_activity.pdf', dpi=300)                              
 list_of_plots['activity'] = fig_ac
 
 if (v_jl != v_jl_0).any() and neurons > 1:

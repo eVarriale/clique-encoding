@@ -66,7 +66,7 @@ T_x = 20.
 gain = 10# default : 10
 
 def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh, 
-                   full_vesicles_exc, vesic_release_exc, excit_weights, 
+                   full_vesicles_exc, vesic_release_exc, excit_weights,
                    inhib_weights, sensory_signal=None, sensory_weights=None):
 
     ''' Next step with Euler integration '''
@@ -106,8 +106,8 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
     return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
 
 T_l = 2000
-T_f = 10 * 60 * 1000
-T_v = 1
+T_f = 5 * 60 * 1000
+T_v = 2
 
 def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signal, 
                        dx, sensory_weights, activity):
@@ -126,10 +126,10 @@ def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signa
         new_winning_clique = 1# - inhib_input - excit_input
 
         #new_winning_clique = activation(sensory_inp + inhib_input, 10, 0.1)#, 0.5)
-        
+
         #new_winning_clique = 1 - np.heaviside((sensory_inp+recur_inp)*recur_inp, .5)
         #new_winning_clique = 1 - activation((sensory_inp+recur_inp)*recur_inp, 100)
-        
+
         #new_winning_clique = np.sign(sensory_inp + inhib_input)
 
         dy = gain * activity * (1 - activity) * dx
@@ -139,7 +139,7 @@ def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signa
     else:
         learning = np.zeros(sensory_weights.shape)
         new_winning_clique = c = np.zeros(dx.shape)
-    
+
     #losing_cliques = 1 - new_winning_clique
     #decay =  - np.outer(losing_cliques, sensory_signal)
     decay = -1 * sensory_signal
