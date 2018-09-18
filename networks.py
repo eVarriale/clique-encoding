@@ -212,5 +212,6 @@ def external_weights(input_size, neurons, p_bars):
     avg_active_inputs = p_bars * (2 - p_bars) * input_size
     weights = np.random.normal(1, 0.1, (neurons, input_size))#/ (0.1 * n_clique**2 )
     weights /= 2 * avg_active_inputs
-    if input_size == 1: weights *= 2
+    if input_size == 1: 
+        weights = np.array([[10.]])
     return weights

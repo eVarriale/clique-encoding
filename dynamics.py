@@ -101,23 +101,27 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
     dV, learning, decay = sensory_plasticity(sensory_inp, inhib_input+excit_input,
                                     membrane_potential, sensory_signal, dx,
                                     sensory_weights, activity)
+    #dV, learning, decay = 0, 0, 0 
     #pdb.set_trace()
     #return dx, d_u_inh, d_φ_inh, activity, total_input, sensory_inp, dV, learning, decay
     return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
+    #return dx, d_u_inh, d_φ_inh, 0, 0, activity, total_input, sensory_inp, dV, learning, decay
 
 T_l = 2000
-T_f = 5 * 60 * 1000
-T_v = 2
+T_f = 1 * 60 * 1000
+T_v = 1
 
 def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signal, 
                        dx, sensory_weights, activity):
     #
     V_ina = 0.3
-    V_act = 0.8#8
+    V_act = 0.9#8
+
+    neurons = dx.shape[0]
 
     if (sensory_signal != 0.).any():
         V_target = V_ina + activity * (V_act - V_ina)
-        c = 1 * np.tanh(10*(V_target - sensory_inp))
+        c = 1 * np.tanh(10 * (V_target - sensory_inp))
         #new_winning_clique = sensory_inp + inhib_input 
         # standard rule
 
@@ -127,9 +131,10 @@ def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signa
 
         #new_winning_clique = activation(sensory_inp + inhib_input, 10, 0.1)#, 0.5)
 
-        #new_winning_clique = 1 - np.heaviside((sensory_inp+recur_inp)*recur_inp, .5)
-        #new_winning_clique = 1 - activation((sensory_inp+recur_inp)*recur_inp, 100)
-
+        #new_winning_clique = 1 - np.heaviside((sensory_inp+recur_inp) * recur_inp, .5)
+        #new_winning_clique = 1 - activation((sensory_inp+recur_inp)*recur_inp, 10)
+        #ew_winning_clique = (1 - np.heaviside((sensory_inp+recur_inp)*recur_inp, 0.5)).sum()
+        #new_winning_clique = (new_winning_clique)/neurons
         #new_winning_clique = np.sign(sensory_inp + inhib_input)
 
         dy = gain * activity * (1 - activity) * dx
@@ -138,7 +143,7 @@ def sensory_plasticity(sensory_inp, recur_inp, membrane_potential, sensory_signa
         #pdb.set_trace()
     else:
         learning = np.zeros(sensory_weights.shape)
-        new_winning_clique = c = np.zeros(dx.shape)
+        new_winning_clique = c = np.zeros(neurons)
 
     #losing_cliques = 1 - new_winning_clique
     #decay =  - np.outer(losing_cliques, sensory_signal)

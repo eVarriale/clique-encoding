@@ -6,6 +6,9 @@
 \graphicspath{{./images/}}
 \usepackage{wrapfig}
 
+
+\usepackage[caption=false]{subfig}
+
 \setbeamertemplate{caption}[numbered]
 % packages and settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \usepackage{grffile}
@@ -15,14 +18,14 @@
 \title{Clique encoding in recurrent neural networks} %\\[0.2\baselineskip]with a second line
 \author[varriale@itp.uni-frankfurt.de]{Emanuele Varriale, Claudius Gros}
 \institute{Institute for Theoretical Physics, Goethe University, Frankfurt am Main, Germany}
-\date{\today}
+\date{27$^\text{th}$ September 2018}
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
 \begin{frame}
-
+\hfill
 \begin{columns}
 	
 	% ---------------------------------------------------------%
@@ -36,65 +39,85 @@
 			%%% CONTENT of column 1 %%%
 			%\vfill
 			\begin{block}{Introduction}
-			Internal brain activity is only modulated, not driven, by sensory input \cite{fiser2004modulation}. 
-				
-			Therefore the semantic learning that takes place in the brain is a result of the interaction of external sensory stimuli with an autonomously active network.
-				
-			Clique encoding is a form of sparse coding, that is backed up by experimental findings about real-time memory representation in the hippocampus \cite{lin2006clique}.
-				
-			For this reason we work with a network with competing cliques, where the activity ``flows'' from one clique to another, with a transient state dynamics.
-				
-			We propose a learning rule that correlates such transient states with sensory inputs from the bars and stripes problem, prompted by \cite{gros2010semantic}.
+			\begin{itemize}
+					\item Internal brain activity is only modulated, not driven, by sensory input \cite{fiser2004modulation}. 
+					
+					\item Semantic learning has to result from the interaction of sensory stimuli with an autonomously active network.
+					
+					\item Clique encoding \cite{lin2006clique} can be achieved with a network of competing cliques, that has transient state dynamics.
+										
+					\item We propose a learning rule that correlates such transient states with sensory inputs from the bars and stripes problem, prompted by \cite{gros2010semantic}.
+			\end{itemize}
+
 			\end{block}
 			
-			\vfill
+			\vfil
 			\begin{block}{Network architecture}
-			The term clique comes from graph theory and it refers to maximal fully connected sub-graphs. 
-			
-			In a network formed by cliques with excitatory synapses within and inhibitory ones across, the dynamics is characterized by competing cliques. 
-			
-			An active clique inhibits every other, so that this is a stable state.
-			
-			We use networks as the one shown in Fig. \ref{fig:network}, in which activity can spread from one clique to any other.
-						
+				\begin{itemize}
+					\item A clique is a maximal fully connected sub-graphs. 
+					
+					\item Cliques compete with one another if they have predominantly inhibitory connections across and excitatory ones within.
+					
+					\item A single active clique is a stable state, as long as other cliques are inhibited.
+				\end{itemize}
 			
 			\begin{figure}
 				\centering
-				\includegraphics[width=.7\linewidth]{network2.pdf}
-				\caption{An eight clique network, each with seven nodes. Only excitatory links are shown. Each node within a clique excite a neuron in a different clique. The network is completed with an inhibitory background of connections.}
+				\includegraphics[width=.8\linewidth]{network2.pdf}
+				\caption{An eight clique network, each with seven nodes. Only excitatory links are shown. Each neuron within a clique excites an extra-clique neuron. The network is completed with inhibitory connections.}
 				\label{fig:network}
 			\end{figure}
 			\end{block}		
 							
-			\vfill
+			\vfil
 			\begin{block}{Neuronal dynamics}
-	 		The $j$-th neuron has membrane potential $x_j$, activity $y_j$ and receives excitatory and inhibitory input, respectively $E_j$ and $I_j$. The rate-encoding model is governed by the following equations:
+				\begin{itemize}
+					\item A rate-encoding model is used.
+					\item Neuron have membrane potential $x_j$, activity $y_j$ and excitatory and inhibitory input, $E_j$ and $I_j$.
+				\end{itemize}
 			\begin{gather*}
 				\tau_x \dot{x}_j = -x_j + E_j + I_j\\
-				y_j = \sigma \left(x_k\right) = \frac{1}{1+\exp \left(-a x_k \right) } \\
+				y_j = \sigma \left(x_j\right) = \frac{1}{1+\exp \left(-a x_j \right) } \\
 				E_j = \sum_{k} w_{jk} y_k \\
 				I_j = \sum_k z_{jk} y_k.
 				\label{eq:neuron}
 			\end{gather*}
-			These equations lead to an attractor network, and the system rapidly relaxes to a stable state.
-			
-			Inserting a presynaptic reservoir variable the effective output changes, i.e.\ $y_k \rightarrow \tilde{y}_k$, and a transient state dynamics is obtained, as in Fig. \ref{fig:activity}.
-			\begin{figure}
-				\includegraphics[width=.7\linewidth]{double_activity}
-				\caption{Internal activity in the network shown above. The same colour is used for neurons belonging to the same clique, as shown in Fig. \ref{fig:network}.}
-				\label{fig:activity}
-			\end{figure}
+			\begin{itemize}
+				\item With these equation the system rapidly relaxes to a stable active clique state.
+				
+				\item The inclusion of presynaptic short-term plasticity, i.e.\ $y_k \rightarrow \tilde{y}_k$, gives transient state dynamics, as in Fig. \ref{fig:activity}.
+			\end{itemize}		
+		
+				\begin{figure}
+					\includegraphics[width=.8\linewidth]{double_activity}
+					\caption{Internal activity in the network shown above with the full depletion model. Lines are plotted according to the clique a neuron belongs to, matching the colours in Fig. \ref{fig:network}.}
+					\label{fig:activity}
+				\end{figure}
+		
+
 			
 			\end{block}
-			
-			
-			
-			%\vfill
-			%\begin{emphblock}{Conclusions}
-			%	\singleitem{That is really important to keep in mind.}
-			%	\singleitem{Furthermore ...}
-			%\end{emphblock}
-			\vfill
+			\vfil
+			\begin{refblock}{References}
+
+					\begin{thebibliography}{1}
+
+						\bibitem{fiser2004modulation}
+						Fiser, J., Chiu, C. \& Weliky, M. Small modulation of ongoing cortical dynamics by sensory input during natural vision. Nature 431, 573 (2004).
+						
+						
+						\bibitem{lin2006clique} Lin, L., Osan, R. \& Tsien, J. Z. Organizing principles of real-time memory encoding: neural clique assemblies and universal neural codes. Trends in Neurosciences 29, 48–57 (2006).
+						
+						\bibitem{gros2010semantic}
+						Gros, C. \& Kaczor, G. Semantic learning in autonomously active recurrent neural networks. Log J IGPL 18, 686–704 (2010).
+						
+						\bibitem{tsodyks2008model}
+						Mongillo, G., Barak, O. \& Tsodyks, M. Synaptic Theory of Working Memory. Science 319, 1543–1546 (2008).
+
+					\end{thebibliography}
+
+			\end{refblock}
+			%\vfil
 			%%% END CONTENT of column 1 %%%
 
 	 	} % end of parbox
@@ -103,144 +126,158 @@
 	\end{column}
 	% ---------------------------------------------------------%
 	% end of column 1
-	%\hfil
+	\hfil
 	% ---------------------------------------------------------%
 	% Set up a column 2
-	\begin{column}{.64\textwidth}
+	\begin{column}{.60\textwidth}
 		%\begin{beamercolorbox}[center,wd=\textwidth]{postercolumn}
 		\begin{minipage}[T]{.95\textwidth}
 		\parbox[t][\columnheight]{\textwidth}{
-
 		%%% CONTENT of column 2 %%%
-		%\vfill
+		\vfil
 		\begin{block}{Full depletion model}
 			\begin{columns}
-				\begin{column}[T]{.5\textwidth}
+				\begin{column}[T]{.4\textwidth}
 				\begin{figure}
-					\includegraphics[width=1\linewidth]{double_depletion.pdf}
-					\caption{Dynamics of the full depletion model, with high presynaptic activity.  Inhibitory short-term plasticity is faster than excitatory.}
+					\includegraphics[width=.9\linewidth]{double_depletion_big.pdf}
+					\caption{Dynamics of the full depletion model, with high presynaptic activity, for inhibitory (top) and excitatory (bottom) synapses.}
 					\label{fig:full_depletion}
-				\end{figure}	
+				\end{figure}
 				\end{column}							
-				
-				\begin{column}[T]{.5\textwidth}
-					Transient state dynamics requires winning clique states not to be stable. 
-					
-					This is achieved through the Full depletion model for short term plasticity, similar to the Tsodyks-Markram model \cite{tsodyks2008model}.
-					
-					Each neuron has a presynaptic reservoir variable that is completely depleted after sustained firing, more specifically presynaptic activity is modulated by two terms:
+				\begin{column}[T]{.6\textwidth}
 					\begin{itemize}
-						\item $u_j$ represents the likelihood of neurotransmitter release, which increases with Ca$^{2+}$ traces,
+						\item Winning clique states become unstable with the STP \emph{full depletion model}, inspired by the Tsodyks-Markram model \cite{tsodyks2008model}.
 						
-						\item $\varphi_j$ represents the concentration of available vesicles, that depletes while firing.
+						\item Transient states are obtained by modelling neurotransmitter vesicles with: 
+						\begin{itemize}
+							\item $u_k$: likelihood of neurotransmitter release, increases with input						
+							\item $\varphi_k$: concentration of vesicles, that deplete while firing.
+						\end{itemize}
+						
+						\item Inhibitory synapses deplete faster than excitatory ones.
 					\end{itemize}
-					The Full depletion model is given by:			
 					\begin{gather*}
-						\tilde{y}_j = y_j u_j \varphi_j \\
-						\dot{u}_j = \frac{U_y -u}{T_u}, \quad U_y = 1 + \left( U_\text{max} -1 \right) y_j\\ 
-						\dot{\varphi}_j = \frac{\varPhi_u - \varphi}{T_\varphi}, \quad \varPhi_u = 1- \frac{u y_j}{U_\text{max}} \\
+						y_k \rightarrow \tilde{y}_k = y_k u_k \varphi_k \\
+						\dot{u}_k = \frac{U_y -u_k}{T_u}, \quad U_y = 1 + \left( U_\text{max} -1 \right) y_k\\ 
+						\dot{\varphi}_k = \frac{\varPhi_u - \varphi_k}{T_\varphi}, \quad \varPhi_u = 1- \frac{u_k y_k}{U_\text{max}} \\
 						T^{\text{exc}} = 5 \cdot T^{\text{inh}}.
 					\end{gather*}
-
 				\end{column}
 			\end{columns}
 		\end{block}
-		
-		\begin{block}{Sensory input}
-			\begin{columns}
-				\begin{column}[T]{.1\textwidth}
-					\begin{figure}[T]
-						\includegraphics[width=2.8\textwidth, angle=-90]{input_ex.pdf}									
+		\vfil
+			\begin{block}{Sensory input}
+				\begin{columns}
+					\begin{column}[T]{.55\textwidth}		
+						\begin{itemize}
+							\item Cognitive systems must identify objects in a noisy environment, performing independent component analysis.
+							
+							\item Only correlation of sensory signals to cliques can confer semantic meaning to the network.
+							
+							\item Sensory inputs are vertical and horizontal bars presented on a retina of $L \times L$ pixels.
+							
+							\item Each bar is independently drawn with probability $p=1/2L$.
+							
+							\item Inactive pixels have output $y_l^{\text{ext}}=0$, and active pixels $y_l^{\text{ext}}=1$, even at the intersection of two bars.
+							
+							\item Therefore, \emph{non linear} independent component analysis has to be performed to separate bars.
+							
+							\item At regular intervals, the all-to-all sensory connections transmit the extra input
+								\begin{equation*}
+								\Delta E_j = \sum_{l} v_{jl} y_l^{\text{ext}}
+								\end{equation*}
+						\end{itemize}						
+					\end{column}
+					\begin{column}[T]{.45\textwidth}	
+						\begin{figure}[T]
+							\subfloat[Activity with sensory input shown by vertical stripes.]{%
+								\includegraphics[clip,width=.9\textwidth]{double_sens_activity2.pdf}%
+							}
+							
+							\subfloat[Examples of input patterns.]{%
+								\includegraphics[clip,width=0.8\textwidth]{input_ex6.pdf}%
+							}
+							%\includegraphics[width=1\textwidth]{double_sens_activity.pdf}
+							%\includegraphics[width=1\textwidth]{input_ex.pdf}	
+						\end{figure}
+					\end{column}
+				\end{columns}
+			\end{block}
+			\vfil
+			\begin{minipage}[T]{.55\textwidth}
+			\begin{block}{Learning rule}
+				
+				\begin{columns}
+					\begin{column}[T]{1\textwidth}
+						\begin{itemize}
+							\item The sensory weights $v_{jl}$ must change so that different clique responds mostly to different bars.
+							
+							\item We hypothesize that learning occurs during transition from one winning clique to another.
+						\end{itemize}
+						\begin{gather*}
+						\dot{v}_{jl} = \left(\dot{y}_j c_j / \tau_v  - 1 / \tau_d\right) y_l^{\text{ext}} v_{jl}  \\
+						c_j = \tanh{\left[a \left(V_t - \Delta E_j \right)\right]} \\
+						V_t = V^{\text{inact}} + y_j \left(V^{\text{act}} - V^{\text{inact}}\right)\\
+						\tau_v \ll \tau_d, \quad V^{\text{inact}} < V^{\text{act}}.	
+						\end{gather*}
+						\begin{itemize}
+							\item $v_{jl}$ ensures that the weights do not change sign,
+							\item sensory input $y_l^{\text{ext}}$ is necessary,
+							\item $\dot{y}_j = 0$ during winning clique states,
+							\item $c_j$ prevents runaway synapses dynamics, through the sliding activity level target $V_t$,
+							\item the slow decay term $-1/\tau_d$ shrinks orthogonal synapses.
+						\end{itemize}
+					\end{column}
+			
+				\end{columns}
+			\end{block}
+		%\end{minipage}
+		\vfill
+		%	\begin{minipage}[T]{.5\textwidth}
+			\begin{block}{Results}
+				\begin{columns}									
+					\begin{column}[T]{1\textwidth}
+						We use two performance measure:
+						\begin{gather*}
+						R(\alpha, \beta) = \frac{1}{S_\alpha} \sum_{\substack{i\in C_\alpha \\ l \in P_\beta}} v_{il} y_l^{\text{ext}} \\
+						F(\alpha, l) = \frac{1}{S_\alpha} \sum_{i\in C_\alpha} v_{il}
+						\end{gather*}
+						\begin{itemize}
+							\item The response $R(\alpha, \beta)$ is the clique averaged input received by clique $\alpha$ of size $S_\alpha$, when bar $\beta$ is active.
+							
+							\item Ideally, $R(\alpha, \beta)$ would have a single maximum, that would be different across cliques.
+							
+							\item The receptive field $F(\alpha, l)$ is the clique averaged sensory synaptic weight from the $j$-th pixel.
+							
+							\item Ideally, $F(\alpha, l)$ would mirror the input from the most important bar.
+						\end{itemize}
+						
+					\end{column}
+					
+				\end{columns}
+			\end{block}
+			\end{minipage}			
+			\begin{minipage}[T]{.45\textwidth}
+				\vspace{1\baselineskip}
+				\begin{column}[T]{1\textwidth}
+					\begin{figure}
+						\includegraphics[width=.89\textwidth]{double_complete_tall.pdf}
+						\caption{{\color{black}Performance of the learning rule. Top: clique response for every bar, dashed lines show initial response. Bottom: receptive fields of two most responding cliques. The colour coding spans from violet ($<0.01$) to yellow ($\approx 0.25$).}}
+						\label{fig:complete}
 					\end{figure}
 				\end{column}
-				
-				\begin{column}[T]{.9\textwidth}				
-				A critical task for a cognitive system is to identify recurring patterns, i.e.\ objects, in a noisy environment, a task that falls under the domain of Independent Component Analysis.
-			
-				The autonomous activity of the network has no semantic content, being independent from the external world. Meaning can be acquired by correlating sensory signals to specific cliques.
-	
-				We use the bars problem, in which horizontal and vertical bars are presented on a retina of $L \times L$ pixels. Each of the $2L$ bars is independently drawn with probability $p=1/2L$. Inactive pixels have value $y_l^{\text{ext}}=0$, whereas active pixels always $y_l^{\text{ext}}=1$, even if they are at the intersection of two bars.
-											
-				Because of this, a \emph{non linear} independent component analysis has to be performed in order to separate bars.
-					
-				This sensory input layer is connected to every node in the network with excitatory connections $v_{jl}$. At regular intervals the network receives an extra input term:
-				\begin{equation*}
-					\Delta E_j = \sum_{l=1}^{L^2} v_{jl} y_l^{\text{ext}}
-				\end{equation*}
-				%The initial weights are chosen so that the average input is $\left\langle \Delta E_j\right\rangle  \approx 0.5$. Larger inputs could inactivate the current winning coalition, and completely drive the network.
-
-
-			
-
-			\end{column}
-
-			\end{columns}
-
-				
-
-			\end{block}
-			
-			\begin{block}{Learning rule}
-			\begin{columns}
-				\begin{column}[T]{.4\textwidth}
-
-					\includegraphics[width=1\linewidth]{complete2.pdf}	
-				\end{column}								
-				
-				\begin{column}[T]{.6\textwidth}
-				The learning procedure has to map different bars onto different cliques, by taking advantage of the fact that the sensory input can ``steer'' the competitive dynamics by changing the order of winning cliques.
-					
-				We employ the following learning rule:
-				\begin{gather*}
-					\frac{d}{dt} v_{jl} = \left(\dot{y}_j c_j / \tau_v  - 1 / \tau_d\right) y_l^{\text{ext}} v_{jl}  \\
-					c_j = \tanh{\left[a \left(V_t - \Delta E_j \right)\right]} \\
-					V_t = V^{\text{ina}} + y_j \left(V^{\text{act}} - V^{\text{ina}}\right)\\
-					\tau_v \ll \tau_d, \quad V^{\text{ina}} < V^{\text{act}}.	
-				\end{gather*}
-				We note that:
-				\begin{itemize}
-					\item the factor $v_{jl}$ ensures that the weights do not change sign,
-					\item presynaptic activity $y_l^{\text{ext}}$ is necessary to learning,
-					\item $\dot{y}_j$ ensures that learning only takes place when the activity changes significantly,
-					\item the term $c_j$ prevents runaway growth or shrinking of weights, with the sliding threshold $V_t$,
-					\item the slow decay term $-1/\tau_d$ shrinks non-useful synapses.
-				\end{itemize}
-				To assess the performance of the learning rule we compute the response $R(\alpha, \beta)$ of clique $\alpha$ to the pattern $\beta$ and the receptive field $F(\alpha, l)$:
-				\begin{gather*}
-					R(\alpha, \beta) = \frac{1}{S(C_\alpha)} \sum_{\substack{i\in C_\alpha \\ l \in P_\beta}} v_{il} y_l^{\text{ext}} \\
-					F(\alpha, l) = \frac{1}{S(C_\alpha)} \sum_{i\in C_\alpha} v_{il}
-				\end{gather*}
-					
-				\end{column}
-			\end{columns}
-				
-			
-			\end{block}
-			
-
+			\end{minipage}
 			\vfill
-			\begin{refblock}{References}
-			\begin{columns}
- 				\begin{thebibliography}{1}
-				\begin{column}[T]{.46\textwidth}
-					\bibitem{fiser2004modulation}
-					Fiser, J., Chiu, C. \& Weliky, M. Small modulation of ongoing cortical dynamics by sensory input during natural vision. Nature 431, 573 (2004).
-							
-							
-					\bibitem{lin2006clique} Lin, L., Osan, R. \& Tsien, J. Z. Organizing principles of real-time memory encoding: neural clique assemblies and universal neural codes. Trends in Neurosciences 29, 48–57 (2006).
-																					
-				\end{column}
-				\begin{column}[T]{.46\textwidth}
-					\bibitem{gros2010semantic}
-					Gros, C. \& Kaczor, G. Semantic learning in autonomously active recurrent neural networks. Log J IGPL 18, 686–704 (2010).
-						
-					\bibitem{tsodyks2008model}
-					Mongillo, G., Barak, O. \& Tsodyks, M. Synaptic Theory of Working Memory. Science 319, 1543–1546 (2008).
-						
-				\end{column}
- 				\end{thebibliography}
-			\end{columns}
-			\end{refblock}
+			\vspace{0.9\baselineskip}
+			\begin{emphblock}{Conclusions}
+				\singleitem{In neural networks designed for feature extraction activity usually dies out without input. This is not, however, how actual brains operate.}
+				\singleitem{This work is a proof of concept showing how feature extraction with an autonomously active network can be achieved.}
+				\singleitem{Internal activity is characterized by transient states and competitive dynamics, and learning occurs during transitions between active cliques.}
+				\singleitem{More work is needed to improve performance and robustness of the algorithm.}
+			\end{emphblock}
+
+		\vfill
+
 		%\vfil
 		%%% END CONTENT of column 2 %%%
 
@@ -251,10 +288,12 @@
 		\end{minipage}
 		%\end{beamercolorbox}
 	\end{column}
+	\hfil
 	% ---------------------------------------------------------%
 	% end of column 2
 \end{columns}
 \hfill
+\vfill
 \vskip1ex
 \end{frame}
 \end{document}

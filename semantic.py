@@ -49,13 +49,13 @@ def clique_responses(graph, external_weights):
         response_list.append(a_clique_response(clique, graph, external_weights))
     response_array = np.array(response_list)
     most_responding = np.argmax(response_array, axis=0)
-    '''
+    # which clique responds the most for a given pattern
     resp2 = copy.copy(response_array)
-    for clique, most in enumerate(most_responding):
-        resp2[clique, most] = 0
-    most_responding2 = np.argmax(response_array, axis=0)
-    '''
-    return response_array, most_responding
+    for pattern, most in enumerate(most_responding):
+        resp2[most, pattern] = 0
+    second_most_responding = np.argmax(resp2, axis=0)
+    #pdb.set_trace()
+    return response_array, most_responding, second_most_responding
 
 def a_receptive_field(clique, graph, external_weights):
     ''' returns the clique mean sensory weight

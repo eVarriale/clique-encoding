@@ -65,9 +65,9 @@ def network(graph):
     #nx.draw_networkx_edges(graph, pos, edgelist=inh_edge, style='dashed',
     #                       edge_color='b', alpha=0.5, lw=10)
 
-    clique = graph.clique_list[0]
-    clique_edge = [(a, b) for i, a in enumerate(clique) for b in clique[i+1:]]
-    nx.draw_networkx_edges(graph, pos, edgelist=clique_edge, edge_color='red', lw=10) #
+    #clique = graph.clique_list[0]
+    #clique_edge = [(a, b) for i, a in enumerate(clique) for b in clique[i+1:]]
+    #nx.draw_networkx_edges(graph, pos, edgelist=clique_edge, edge_color='red', lw=10) #
 
     #nx.draw_networkx_labels(graph, pos)
     #labels = nx.get_edge_attributes(graph, 'weight')
@@ -173,7 +173,7 @@ def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule,
         ax.set_ylim(ylim)
 
         # Create a legend for the first line.
-        first_legend = plt.legend(handles=[f for f in fills], title='Bars', loc=4, frameon=False)
+        first_legend = plt.legend(handles=[f for f in fills], title='Bars')#, frameon=False)
     ax.set_yticks([0, 1])
     plt.tight_layout()
     if save_figures:
@@ -225,7 +225,7 @@ def response(graph, ext_weights, ax=None, plot_init=False):
     n_clique = graph.n_c
     if ax is None:
         fig, ax = plt.subplots()
-    resp, most_responding = semantic.clique_responses(graph, ext_weights)
+    resp, most_responding, second_most_responding = semantic.clique_responses(graph, ext_weights)
     #plot_init = False
     #if initial_weights is not None:
     #    init_resp, init_most = semantic.clique_responses(graph, initial_weights)
@@ -245,7 +245,7 @@ def response(graph, ext_weights, ax=None, plot_init=False):
     ax.set_xticks(np.arange(n_pattern))
     ax.set_xticklabels([])
     #pdb.set_trace()
-    return ax, most_responding
+    return ax, most_responding, second_most_responding
 
 def patterns(graph, n_pattern, axs=None, given_bars=None):
     if axs is None:
@@ -265,21 +265,21 @@ def patterns(graph, n_pattern, axs=None, given_bars=None):
         ax.set_yticks(np.arange(-.5, bar_size, 1))
         ax.grid(lw=1, c='k')
         ax.tick_params(axis='both', left=False, top=False, right=False,
-                           bottom=False, labelleft=False, labeltop=False,
-                           labelright=False, labelbottom=False)
+                       bottom=False, labelleft=False, labeltop=False,
+                       labelright=False, labelbottom=False)
 
         #axs[i].set(xticks = [], yticks = [])
     return axs
 
-def receptive_fields(graph, ext_weights, axs=None, most_responding=None):
+def receptive_fields(graph, ext_weights, axs=None, ordering=None):
     rec_fields, Min, Max = semantic.receptive_fields(graph, ext_weights)
     if axs is None:
         fig, axs = plt.subplots(1, graph.n_c)
 
-    if most_responding is None:
+    if ordering is None:
         loop_over = range(len(axs))
     else:
-        loop_over = most_responding
+        loop_over = ordering
     for i, j in enumerate(loop_over):
         img = axs[i].matshow(rec_fields[j], vmin=Min, vmax=Max)
         #img = axs[i].matshow(rec_fields[j], vmin=0, vmax=1)
@@ -302,7 +302,7 @@ def complete_figure(graph, ext_weights, initial_weights=None):
     n_pattern = int(np.sqrt(ext_weights.shape[1])) * 2
     grid_spec = gridspec.GridSpec(grid_rows, graph.n_c, height_ratios=[8, 1, 1, 1])
     ax_resp = plt.subplot(grid_spec[0, :])
-    ax_resp, most_responding = response(graph, ext_weights, ax=ax_resp)
+    ax_resp, most_responding, second_most_responding = response(graph, ext_weights, ax=ax_resp)
     if initial_weights is not None:
         response(graph, initial_weights, ax=ax_resp, plot_init=True)
 
@@ -317,6 +317,11 @@ def complete_figure(graph, ext_weights, initial_weights=None):
 
     axs_bars = patterns(graph, n_pattern, axs_bars)
     axs_recep_max = receptive_fields(graph, ext_weights, axs_recep_max, most_responding)
-    axs_recep = receptive_fields(graph, ext_weights, axs_recep)
-
-    return fig_compl, ax_resp, axs_bars, axs_recep
+    axs_recep = receptive_fields(graph, ext_weights, axs_recep, second_most_responding)
+    axs_recep_max[0].set_ylabel('Largest\nresponse\n')
+    axs_recep[0].set_ylabel('Second\nlargest\n')
+    axs_recep_max[3].set_title('       Receptive Fields')
+    fig_compl.set_size_inches([7.0, 13.])
+    plt.subplots_adjust(left=0.13, right=1-0.13, bottom=0, top=0.95, hspace=0.05)
+    plt.savefig('./log/double_complete_tall.pdf', dpi=300)
+    return fig_compl, ax_resp, axs_bars, axs_recep_max, axs_recep
