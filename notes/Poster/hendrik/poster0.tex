@@ -73,7 +73,7 @@
 			\begin{block}{Neuronal dynamics}
 				\begin{itemize}
 					\item A rate-encoding model is used.
-					\item Neuron have membrane potential $x_j$, activity $y_j$ and excitatory and inhibitory input, $E_j$ and $I_j$.
+					\item The $j$-th neuron has membrane potential $x_j$, activity $y_j$ and excitatory and inhibitory input, $E_j$ and $I_j$.
 				\end{itemize}
 			\begin{gather*}
 				\tau_x \dot{x}_j = -x_j + E_j + I_j\\
@@ -85,12 +85,12 @@
 			\begin{itemize}
 				\item With these equation the system rapidly relaxes to a stable active clique state.
 				
-				\item The inclusion of presynaptic short-term plasticity, i.e.\ $y_k \rightarrow \tilde{y}_k$, gives transient state dynamics, as in Fig. \ref{fig:activity}.
+				\item The inclusion of presynaptic short-term plasticity, transforming $y_k \rightarrow \tilde{y}_k$, gives transient state dynamics, as in Fig. \ref{fig:activity}.
 			\end{itemize}		
 		
 				\begin{figure}
 					\includegraphics[width=.8\linewidth]{double_activity}
-					\caption{Internal activity in the network shown above with the full depletion model. Lines are plotted according to the clique a neuron belongs to, matching the colours in Fig. \ref{fig:network}.}
+					\caption{Internal activity in the network shown above, with the full depletion model.Neurons belonging to the same clique share plotting colours, as in Fig. \ref{fig:network}.}
 					\label{fig:activity}
 				\end{figure}
 		
@@ -146,7 +146,7 @@
 				\end{column}							
 				\begin{column}[T]{.6\textwidth}
 					\begin{itemize}
-						\item Winning clique states become unstable with the STP \emph{full depletion model}, inspired by the Tsodyks-Markram model \cite{tsodyks2008model}.
+						\item Winning clique states become unstable with the STP \emph{full depletion model}, that is inspired by the Tsodyks-Markram model \cite{tsodyks2008model}.
 						
 						\item Transient states are obtained by modelling neurotransmitter vesicles with: 
 						\begin{itemize}
@@ -172,9 +172,8 @@
 						\begin{itemize}
 							\item Cognitive systems must identify objects in a noisy environment, performing independent component analysis.
 							
-							\item Only correlation of sensory signals to cliques can confer semantic meaning to the network.
-							
-							\item Sensory inputs are vertical and horizontal bars presented on a retina of $L \times L$ pixels.
+							\item Sensory input consists of vertical and horizontal bars
+							presented on a retina of $L \times L$ pixels
 							
 							\item Each bar is independently drawn with probability $p=1/2L$.
 							
@@ -182,7 +181,7 @@
 							
 							\item Therefore, \emph{non linear} independent component analysis has to be performed to separate bars.
 							
-							\item At regular intervals, the all-to-all sensory connections transmit the extra input
+							\item At regular intervals, the all-to-all sensory connections transmit the extra excitatory input
 								\begin{equation*}
 								\Delta E_j = \sum_{l} v_{jl} y_l^{\text{ext}}
 								\end{equation*}
@@ -210,9 +209,9 @@
 				\begin{columns}
 					\begin{column}[T]{1\textwidth}
 						\begin{itemize}
-							\item The sensory weights $v_{jl}$ must change so that different clique responds mostly to different bars.
+							\item The sensory weights $v_{jl}$ must change so that different cliques respond mostly to single different bars.
 							
-							\item We hypothesize that learning occurs during transition from one winning clique to another.
+							\item We hypothesize that learning occurs during the transitions from one winning clique to another.
 						\end{itemize}
 						\begin{gather*}
 						\dot{v}_{jl} = \left(\dot{y}_j c_j / \tau_v  - 1 / \tau_d\right) y_l^{\text{ext}} v_{jl}  \\
@@ -237,7 +236,7 @@
 			\begin{block}{Results}
 				\begin{columns}									
 					\begin{column}[T]{1\textwidth}
-						We use two performance measure:
+						We use two performance measures:
 						\begin{gather*}
 						R(\alpha, \beta) = \frac{1}{S_\alpha} \sum_{\substack{i\in C_\alpha \\ l \in P_\beta}} v_{il} y_l^{\text{ext}} \\
 						F(\alpha, l) = \frac{1}{S_\alpha} \sum_{i\in C_\alpha} v_{il}
@@ -262,13 +261,13 @@
 				\begin{column}[T]{1\textwidth}
 					\begin{figure}
 						\includegraphics[width=.89\textwidth]{double_complete_tall.pdf}
-						\caption{{\color{black}Performance of the learning rule. Top: clique response for every bar, dashed lines show initial response. Bottom: receptive fields of two most responding cliques. The colour coding spans from violet ($<0.01$) to yellow ($\approx 0.25$).}}
+						\caption{{\color{black}Performance of the learning rule. Top: clique response for every bar, dashed lines show initial responses. Bottom: receptive fields of the two cliques that respond the most to given patterns. The colour coding increases from violet	to yellow.}}
 						\label{fig:complete}
 					\end{figure}
 				\end{column}
 			\end{minipage}
 			\vfill
-			\vspace{0.9\baselineskip}
+			\vspace{1\baselineskip}
 			\begin{emphblock}{Conclusions}
 				\singleitem{In neural networks designed for feature extraction activity usually dies out without input. This is not, however, how actual brains operate.}
 				\singleitem{This work is a proof of concept showing how feature extraction with an autonomously active network can be achieved.}

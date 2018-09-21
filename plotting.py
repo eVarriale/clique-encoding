@@ -14,11 +14,29 @@ import dynamics
 PROP_CYCLE = plt.rcParams['axes.prop_cycle']
 COLORS = PROP_CYCLE.by_key()['color']
 
+def rotating_cycler(n_clique):
+    ''' returns a cycler that plt can use to assign colors '''
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+    #rotating_cycler = cyclesr('linestyle', ['-', '--', ':', '-.']) * cycler(color = colors)
+    my_cycler = cycler(color=colors)
+    my_cycler = my_cycler[:n_clique]
+    return my_cycler
+
+def color_map(n_clique):
+    ''' returns n_clique colors out of viridis color map. '''
+    start = 0.
+    stop = 1
+    cm_subsection = np.linspace(start, stop, n_clique)
+    colors = [cm.viridis(x) for x in cm_subsection]
+    return colors
+
+
 def geometric_shell(graph):
     ''' compute positions: cliques at regular angle intervals, and cliques as
     regular shapes'''
-    radius = 2
-    neuron_radius = 0.4
+    radius = 2 * len(graph.clique_list)
+    neuron_radius = 0.4 * len(graph.clique_list)
     npos = {}
     # Discard the extra angle since it matches 0 radians.
     theta_clique = -np.linspace(0, 1, len(graph.clique_list) + 1)[:-1] * 2 * np.pi 
@@ -86,22 +104,7 @@ def network(graph):
 
     return fig_net, ax_net
 
-def rotating_cycler(n_clique):
-    ''' returns a cycler that plt can use to assign colors '''
-    prop_cycle = plt.rcParams['axes.prop_cycle']
-    colors = prop_cycle.by_key()['color']
-    #rotating_cycler = cyclesr('linestyle', ['-', '--', ':', '-.']) * cycler(color = colors)
-    my_cycler = cycler(color=colors)
-    my_cycler = my_cycler[:n_clique]
-    return my_cycler
 
-def color_map(n_clique):
-    ''' returns n_clique colors out of viridis color map. '''
-    start = 0.
-    stop = 1
-    cm_subsection = np.linspace(start, stop, n_clique)
-    colors = [cm.viridis(x) for x in cm_subsection]
-    return colors
 
 def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule, 
                 save_figures=False, bars_time=None):
@@ -141,18 +144,18 @@ def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule,
         #deriv, = ax.plot(time_plot[:-1], derivative, label = i if i<graph.n_c else '_nolegend_', color = COLORS[i%graph.n_c], linestyle = '-.')
 
         if gain_rule != 0:
-            label2 = 'gain {}'.format(clique) if i == 0 else '_nolegend_'
-            line2, = ax.plot(time_plot, A[i].T, label=label2, color=color, linestyle='-.')
+            label2 = '$\phi_e u_e$' if i == 0 else '_nolegend_'
+            line2, = ax.plot(time_plot, A[i].T, label=label2, color=color, linestyle='-.', alpha=0.5)
 
-            label3 = 'threshold {}'.format(clique) if i == 0 else '_nolegend_'
-            line3, = ax.plot(time_plot, B[i].T, label=label3, color=color, linestyle='--')
+            label3 = '$\phi_i u_i$' if i == 0 else '_nolegend_'
+            line3, = ax.plot(time_plot, B[i].T, label=label3, color=color, linestyle='--', alpha=0.5)
             
             lines.append([line2, line3])
         #ax.plot([time_plot[0], time_plot[-1]], [mean, mean], '--')
         #std_line, = ax.plot([time_plot[0], time_plot[-1]], [mean + std, mean + std], '--')
         #ax.plot([time_plot[0], time_plot[-1]], [mean - std, mean - std], '--', color = std_line.get_color())
-    #legend1 = plt.legend(title='Cliques', loc=1,frameon=False)
-    #ax.add_artist(legend1)
+    legend1 = plt.legend(title='Cliques', loc=1,frameon=False)
+    ax.add_artist(legend1)
 
     if bars_time is not None and (bars_time != -1).any():
         bars_time = bars_time[-time_plot.size:]
@@ -183,6 +186,36 @@ def activity(graph, time_plot, neurons_plot, y_plot, A, B, gain_rule,
         #Y = 0
     return fig, ax
 
+def full_depletion(time_plot, full_vesicles_inh_plot, vesic_release_inh_plot,
+                    full_vesicles_exc_plot, vesic_release_exc_plot):
+
+    fig_fulldep, ax_fulldep = plt.subplots(nrows=2, sharex=True)
+
+    effective_weights_plot_inh = vesic_release_inh_plot * full_vesicles_inh_plot
+    ax_fulldep[0].plot(time_plot, full_vesicles_inh_plot.T, label=r'$\varphi_i$')
+    ax_fulldep[0].plot(time_plot, vesic_release_inh_plot.T, label='$u_i$')
+    ax_fulldep[0].plot(time_plot, effective_weights_plot_inh.T, label=r'$\varphi_i \cdot u_i$')
+    u_phi_max = effective_weights_plot_inh[:, 1800:].max()
+    ax_fulldep[0].set_yticks([0, 1, u_phi_max, dynamics.U_max])
+    ax_fulldep[0].set_yticklabels(['0', '1', '{:2.1f}'.format(u_phi_max), '$U_{max}$'])
+    ax_fulldep[0].legend(frameon=False, prop={'size': 15})
+
+    effective_weights_plot_exc = vesic_release_exc_plot * full_vesicles_exc_plot
+    ax_fulldep[1].plot(time_plot, full_vesicles_exc_plot.T, label=r'$\varphi_e$')
+    ax_fulldep[1].plot(time_plot, vesic_release_exc_plot.T, label='$u_e$')
+    ax_fulldep[1].plot(time_plot, effective_weights_plot_exc.T, label=r'$\varphi_e \cdot u_e$')
+    u_phi_max = effective_weights_plot_exc[:, 1800:].max()
+    ax_fulldep[1].set_yticks([0, 1, u_phi_max, dynamics.U_max])
+    ax_fulldep[1].set_yticklabels(['0', '1', '{:2.1f}'.format(u_phi_max), '$U_{max}$'])
+    ax_fulldep[0].set(ylim=[-0.02, dynamics.U_max + .02], xlim=[1.8, 3.8])
+    ax_fulldep[1].set(ylim=[-0.02, dynamics.U_max + .02], xlim=[1.8, 3.8])
+    ax_fulldep[1].set(xlabel='time (s)')
+    ax_fulldep[1].legend(frameon=False, prop={'size': 15})
+
+    #ax_fulldep[0].set_xticks([1.8, 2.3, 2.8, 3.3])
+    #ax_fulldep[0].set_xticklabels(['0', '0.5', '1', '1.5'])
+    plt.tight_layout()
+    return fig_fulldep, ax_fulldep
 
 def activity_stripes(graph, y_plot, time_plot):
     neurons = graph.number_of_nodes()
@@ -240,7 +273,7 @@ def response(graph, ext_weights, ax=None, plot_init=False):
     #response_formula = r'$ R(C, P) = \frac{1}{S_C} \sum_{i \in C, \, j} v_{ij} y_j^P $'
     ax.set_title('Clique response R to pattern P')
     #plt.title(r'$ R(C, P) = \frac{1}{S_C} \sum_{i \in C \, j} v_{ij} y_j^P $')
-    ax.set(ylabel='Response R', xlabel='Pattern P')
+    ax.set(ylabel='Response R')
     n_pattern = int(np.sqrt(ext_weights.shape[1])) * 2
     ax.set_xticks(np.arange(n_pattern))
     ax.set_xticklabels([])
@@ -293,15 +326,40 @@ def receptive_fields(graph, ext_weights, axs=None, ordering=None):
     #tick_min = round(Min, -int(floor(log10(abs(Min)))))
     #tick_max = round(Max, -int(floor(log10(abs(Max)))))
     #fig.colorbar(img, ax=axs, ticks=[tick_min, tick_max], aspect=5)
-    return axs
+    return axs, img
+
+def stat_receptive_fields(fields, deviation):
+    bars_num = fields.shape[0]
+    bar_size = fields.shape[1]
+    fig, axs = plt.subplots(2, bars_num)
+    vmax = fields.max()
+    for i, row in enumerate(axs):
+        if i == 0:
+            for j, field in enumerate(fields):
+                img = row[j].matshow(field, vmin=0, vmax=vmax)
+                pattern = semantic.a_bar(bar_size, [j], ravel=False)
+                row[j].set_xlabel('{:3.2f}'.format((field * pattern).sum()))
+                row[j].tick_params(axis='both', left=False, top=False, right=False,
+                   bottom=False, labelleft=False, labeltop=False,
+                   labelright=False, labelbottom=False)
+        else:
+            for j, dev in enumerate(deviation):
+                img = row[j].matshow(dev, vmin=0, vmax=vmax)
+                pattern = semantic.a_bar(bar_size, [j], ravel=False)
+                row[j].set_xlabel('{:3.2f}'.format((dev * pattern).sum()))
+                row[j].tick_params(axis='both', left=False, top=False, right=False,
+                   bottom=False, labelleft=False, labeltop=False,
+                   labelright=False, labelbottom=False)
+    return fig, axs, img
 
 def complete_figure(graph, ext_weights, initial_weights=None):
     ''' draws a figure with clique response, patterns, and receptive fields'''
     fig_compl = plt.figure()
     grid_rows = 4
     n_pattern = int(np.sqrt(ext_weights.shape[1])) * 2
-    grid_spec = gridspec.GridSpec(grid_rows, graph.n_c, height_ratios=[8, 1, 1, 1])
-    ax_resp = plt.subplot(grid_spec[0, :])
+    grid_spec = gridspec.GridSpec(grid_rows, graph.n_c + 1, 
+                height_ratios=[8, 1, 1, 1], width_ratios=[*[1]*graph.n_c, 0.2])
+    ax_resp = plt.subplot(grid_spec[0, :-1])
     ax_resp, most_responding, second_most_responding = response(graph, ext_weights, ax=ax_resp)
     if initial_weights is not None:
         response(graph, initial_weights, ax=ax_resp, plot_init=True)
@@ -315,13 +373,16 @@ def complete_figure(graph, ext_weights, initial_weights=None):
     for i in range(graph.n_c):    
         axs_recep.append(plt.subplot(grid_spec[3, i]))
 
+    ax_colorbar = plt.subplot(grid_spec[2:, -1])
+    
     axs_bars = patterns(graph, n_pattern, axs_bars)
-    axs_recep_max = receptive_fields(graph, ext_weights, axs_recep_max, most_responding)
-    axs_recep = receptive_fields(graph, ext_weights, axs_recep, second_most_responding)
+    axs_recep_max, img = receptive_fields(graph, ext_weights, axs_recep_max, most_responding)
+    axs_recep, img = receptive_fields(graph, ext_weights, axs_recep, second_most_responding)
+    plt.colorbar(img, cax=ax_colorbar)
     axs_recep_max[0].set_ylabel('Largest\nresponse\n')
     axs_recep[0].set_ylabel('Second\nlargest\n')
     axs_recep_max[3].set_title('       Receptive Fields')
     fig_compl.set_size_inches([7.0, 13.])
-    plt.subplots_adjust(left=0.13, right=1-0.13, bottom=0, top=0.95, hspace=0.05)
+    plt.subplots_adjust(left=0.13, right=1-0.13, top=0.95, bottom=0.05, hspace=0.05)
     plt.savefig('./log/double_complete_tall.pdf', dpi=300)
-    return fig_compl, ax_resp, axs_bars, axs_recep_max, axs_recep
+    return fig_compl, ax_resp, axs_bars, axs_recep_max, axs_recep, ax_colorbar

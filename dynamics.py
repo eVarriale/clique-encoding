@@ -55,12 +55,14 @@ def target(membrane_potential, gain, threshold, weights, gain_rule, sensory_sign
                                     sensory_weights, activity)
     return dx, db, da, activity, x_inp, sensory_inp, dV
 
-U_max = 4.
+U_max_inh = 4.
 T_u_inh = 30. #10.
 T_φ_inh = 60. #20.
 
+U_max_exc = 4
 T_u_exc = 5 * T_u_inh
 T_φ_exc = 5 * T_φ_inh
+
 T_x = 20.
 
 gain = 10# default : 10
@@ -84,9 +86,11 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
 
     dx = (total_input - membrane_potential) / T_x
 
-    U_y = 1 + (U_max - 1) * activity
-    d_u_inh = (U_y - vesic_release_inh) / T_u_inh
-    d_u_exc = (U_y - vesic_release_exc) / T_u_exc
+    U_y_inh = 1 + (U_max_inh - 1) * activity
+    d_u_inh = (U_y_inh - vesic_release_inh) / T_u_inh
+
+    U_y_exc = 1 + (U_max_exc - 1) * activity
+    d_u_exc = (U_y_exc - vesic_release_exc) / T_u_exc
 
     ϕ_u_inh = 1 - vesic_release_inh * activity / U_max
     d_φ_inh = (ϕ_u_inh - full_vesicles_inh) / T_φ_inh
@@ -104,9 +108,9 @@ def full_depletion(membrane_potential, full_vesicles_inh, vesic_release_inh,
     #dV, learning, decay = 0, 0, 0 
     #pdb.set_trace()
     #return dx, d_u_inh, d_φ_inh, activity, total_input, sensory_inp, dV, learning, decay
-    return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
-    #return dx, d_u_inh, d_φ_inh, 0, 0, activity, total_input, sensory_inp, dV, learning, decay
-
+    #return dx, d_u_inh, d_φ_inh, d_u_exc, d_φ_exc, activity, total_input, sensory_inp, dV, learning, decay
+    return dx, 0, 0, 0, 0, activity, total_input, sensory_inp, dV, learning, decay
+    # no depletion
 T_l = 2000
 T_f = 1 * 60 * 1000
 T_v = 1

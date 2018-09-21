@@ -81,4 +81,16 @@ def receptive_fields(graph, external_weights):
         if glob_max < rf_max:
             glob_max = rf_max
         recep_fields.append(recep_field)
+    recep_fields = np.array(recep_fields)
     return recep_fields, glob_min, glob_max
+
+def best_receptive_fields(graph, external_weights):
+    recep_fields, glob_min, glob_max = receptive_fields(graph, external_weights)
+    responses, first_resp, second_resp = clique_responses(graph, external_weights)
+    first_fields = recep_fields[first_resp]
+    second_fields = recep_fields[second_resp]
+    first_responses = [responses[clique, bar] for bar, clique in enumerate(first_resp)]
+    first_responses = np.array(first_responses)
+    second_responses = [responses[clique, bar] for bar, clique in enumerate(second_resp)]
+    second_responses = np.array(second_responses)
+    return first_fields, second_fields, first_responses, second_responses

@@ -59,9 +59,11 @@ def geometric_ring(n_clique, clique_size, sparse=False, w_mean=1):
 def geometric_net(n_clique, sparse=False, w_mean=1):
     clique_size = n_clique - 1
     neurons = n_clique * clique_size
+    clique_list = [[i*clique_size + j for j in range(clique_size)] for i in range(n_clique)]
     single_clique = np.ones((clique_size, clique_size))#/(clique_size - 1)
     adjacency_exc = LA.block_diag(*([single_clique]*n_clique))
     offset = 0
+
     for clique_a in range(n_clique):
         clique_tour = (offset + np.arange(clique_size - clique_a)) % clique_size
         for clique_distance, relative_a in enumerate(clique_tour, 1):
@@ -73,14 +75,12 @@ def geometric_net(n_clique, sparse=False, w_mean=1):
             if clique_distance == 1: 
                 offset = relative_b + 1
             assert (relative_b - relative_a) % clique_size == 1
-            adjacency_exc[a, b] = 1
-            adjacency_exc[b, a] = 1
-    if sparse:
-        exc_link_prob = adjacency_exc.sum()/(neurons*(neurons-1))
-        adjacency_inh = (1 - adjacency_exc) * (np.random.rand(neurons, neurons) < exc_link_prob)
-        # sparse inhibitory connections with P_inh = P_exc
-    else:
-        adjacency_inh = 1 - adjacency_exc
+            #adjacency_exc[a, b] = 1
+            #adjacency_exc[b, a] = 1
+
+            adjacency_exc[a, clique_list[to_clique]] = 1
+            adjacency_exc[clique_list[to_clique], a] = 1
+    adjacency_inh = 1 - adjacency_exc
     adjacency_inh = np.triu(adjacency_inh, k=1)
     adjacency_inh += adjacency_inh.T
     weights = w_mean * (adjacency_exc /(clique_size - 1) - adjacency_inh / clique_size)
@@ -97,13 +97,12 @@ def geometric_net(n_clique, sparse=False, w_mean=1):
             if clique_distance == 1: 
                 offset = relative_b + 1
             assert (relative_b - relative_a) % clique_size == 1
-            weights[a, b] /= 2
-            weights[b, a] /= 2
-    '''  
+            weights[a, b] /= 5
+            weights[b, a] /= 5
+    '''
     np.fill_diagonal(weights, 0.)
     #weights *= np.random.uniform(0.9, 1.1, weights.shape)
 
-    clique_list = [[i*clique_size + j for j in range(clique_size)] for i in range(n_clique)]
     graph = set_up_graph(weights, n_clique, clique_size, clique_list, sparse)
 
     exc_weights = weights * (weights > 0)
